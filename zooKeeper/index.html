@@ -1,0 +1,275 @@
+<!doctype html><html lang=en><head><script async defer data-website-id=08a754c4-6690-46d7-bb80-8ff93cfa232f src=https://umami.oldwinter.top/umami.js></script><meta charset=utf-8><meta name=description content="ZooKeeper是什么？  特点: 文件系统 + 监听机制 Zookeeper维护一个类似文件系统的树状数据结构，这种特性使得 Zookeeper 不能用于存放大量的数据，每个节点的存放数据上限为1M
+Watcher 监听机制是 Zookeeper 中非常重要的特性，我们基于 Zookeeper 上创建的节点，可以对这些节点绑定监听事件，比如可以监听节点数据变更、节点删除、子节点状态变更等事件，通过这个事件机制，可以基于 Zookeeper 实现分布式锁、集群管理等功能。
+Watcher 特性：当数据发生变化的时候， Zookeeper 会产生一个 Watcher 事件，并且会发送到客户端。但是客户端只会收到一次通知。如果后续这个节点再次发生变化，那么之前设置 Watcher 的客户端不会再次收到消息。（Watcher 是一次性的操作）。可以通过循环监听去达到永久监听效果。"><title>zooKeeper</title><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" type=image/png href=https://clickear.github.io/dg3/icon.png><link href=https://clickear.github.io/dg3/styles.b3e1e36b0403ac565c9392b3e23ef3b6.min.css rel=stylesheet><link href=https://clickear.github.io/dg3/styles/_light_syntax.86a48a52faebeaaf42158b72922b1c90.min.css rel=stylesheet id=theme-link><script src=https://clickear.github.io/dg3/js/darkmode.d332a3e19329b48801bd480fcbca2dc3.min.js></script>
+<script src=https://clickear.github.io/dg3/js/util.9825137f5e7825e8553c68ce39ac9e44.min.js></script>
+<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css integrity=sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js integrity=sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx crossorigin=anonymous></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous></script>
+<script src=https://unpkg.com/@floating-ui/core@0.7.3></script>
+<script src=https://unpkg.com/@floating-ui/dom@0.5.4></script>
+<script src=https://clickear.github.io/dg3/js/popover.abe6a51cc7138c5dff00f151dd627ad1.min.js></script>
+<script src=https://clickear.github.io/dg3/js/code-title.b35124ad8db0ba37162b886afb711cbc.min.js></script>
+<script src=https://clickear.github.io/dg3/js/clipboard.c20857734e53a3fb733b7443879efa61.min.js></script>
+<script src=https://clickear.github.io/dg3/js/callouts.7723cac461d613d118ee8bb8216b9838.min.js></script>
+<script>const BASE_URL="https://clickear.github.io/dg3",fetchData=Promise.all([fetch("https://clickear.github.io/dg3/indices/linkIndex.6bd1fe729d7b281fb7e411b4c77272f7.min.json").then(e=>e.json()).then(e=>({index:e.index,links:e.links})),fetch("https://clickear.github.io/dg3/indices/contentIndex.38ab943a02481659b6b308d201057d7b.min.json").then(e=>e.json())]).then(([{index:e,links:t},n])=>({index:e,links:t,content:n})),render=()=>{const e=new URL(BASE_URL),t=e.pathname,n=window.location.pathname,s=t==n;addCopyButtons(),addCollapsibleCallouts(),initPopover("https://clickear.github.io/dg3",!0,!0);const o=document.getElementById("footer");if(o){const e=document.getElementById("graph-container");if(!e)return requestAnimationFrame(render);e.textContent="";const t=s&&!1;drawGraph("https://clickear.github.io/dg3",t,[{"/moc":"#4388cc"}],t?{centerForce:1,depth:-1,enableDrag:!0,enableLegend:!1,enableZoom:!0,fontSize:.5,linkDistance:1,opacityScale:3,repelForce:1,scale:1.4}:{centerForce:1,depth:1,enableDrag:!0,enableLegend:!1,enableZoom:!0,fontSize:.6,linkDistance:1,opacityScale:3,repelForce:2,scale:1.2})}},init=(e=document)=>{addCopyButtons(),addTitleToCodeBlocks(),renderMathInElement(e.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],throwOnError:!1})}</script><script>window.Million={navigate:e=>window.location.href=e,prefetch:()=>{}},window.addEventListener("DOMContentLoaded",()=>{init(),render()})</script></head><script async src="https://www.googletagmanager.com/gtag/js?id=G-11MD77L81V"></script>
+<script>var doNotTrack=!1;if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-11MD77L81V",{anonymize_ip:!1})}</script><body><div id=search-container><div id=search-space><input autocomplete=off id=search-bar name=search type=text aria-label="search any" placeholder=支持标题及全文搜索...><div id=results-container></div></div></div><script src=https://cdn.jsdelivr.net/npm/flexsearch@0.7.21/dist/flexsearch.bundle.js integrity="sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=" crossorigin=anonymous defer></script>
+<script defer src=https://clickear.github.io/dg3/js/full-text-search.24827f874defbbc6d529926cbfcfb493.min.js></script><div class=singlePage><header><h1 id=page-title><a href=https://clickear.github.io/dg3>🌿 oldwinterの数字花园</a></h1><div class=spacer></div><div id=search-icon><p>search any</p><svg tabindex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search Icon</title><desc id="desc">Icon to open search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"/><circle cx="8" cy="8" r="7"/></g></svg></div><div class=darkmode><input class=toggle id=darkmode-toggle type=checkbox tabindex=-1>
+<label id=toggle-label-light for=darkmode-toggle tabindex=-1><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="dayIcon" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35"><title>Light Mode</title><path d="M6 17.5C6 16.672 5.328 16 4.5 16h-3C.672 16 0 16.672.0 17.5S.672 19 1.5 19h3C5.328 19 6 18.328 6 17.5zM7.5 26c-.414.0-.789.168-1.061.439l-2 2C4.168 28.711 4 29.086 4 29.5 4 30.328 4.671 31 5.5 31c.414.0.789-.168 1.06-.44l2-2C8.832 28.289 9 27.914 9 27.5 9 26.672 8.329 26 7.5 26zm10-20C18.329 6 19 5.328 19 4.5v-3C19 .672 18.329.0 17.5.0S16 .672 16 1.5v3C16 5.328 16.671 6 17.5 6zm10 3c.414.0.789-.168 1.06-.439l2-2C30.832 6.289 31 5.914 31 5.5 31 4.672 30.329 4 29.5 4c-.414.0-.789.168-1.061.44l-2 2C26.168 6.711 26 7.086 26 7.5 26 8.328 26.671 9 27.5 9zM6.439 8.561C6.711 8.832 7.086 9 7.5 9 8.328 9 9 8.328 9 7.5c0-.414-.168-.789-.439-1.061l-2-2C6.289 4.168 5.914 4 5.5 4 4.672 4 4 4.672 4 5.5c0 .414.168.789.439 1.06l2 2.001zM33.5 16h-3c-.828.0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5h3c.828.0 1.5-.672 1.5-1.5S34.328 16 33.5 16zM28.561 26.439C28.289 26.168 27.914 26 27.5 26c-.828.0-1.5.672-1.5 1.5.0.414.168.789.439 1.06l2 2C28.711 30.832 29.086 31 29.5 31c.828.0 1.5-.672 1.5-1.5.0-.414-.168-.789-.439-1.061l-2-2zM17.5 29c-.829.0-1.5.672-1.5 1.5v3c0 .828.671 1.5 1.5 1.5s1.5-.672 1.5-1.5v-3C19 29.672 18.329 29 17.5 29zm0-22C11.71 7 7 11.71 7 17.5S11.71 28 17.5 28 28 23.29 28 17.5 23.29 7 17.5 7zm0 18c-4.136.0-7.5-3.364-7.5-7.5s3.364-7.5 7.5-7.5 7.5 3.364 7.5 7.5S21.636 25 17.5 25z"/></svg></label><label id=toggle-label-dark for=darkmode-toggle tabindex=-1><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="nightIcon" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'"><title>Dark Mode</title><path d="M96.76 66.458c-.853-.852-2.15-1.064-3.23-.534-6.063 2.991-12.858 4.571-19.655 4.571C62.022 70.495 50.88 65.88 42.5 57.5 29.043 44.043 25.658 23.536 34.076 6.47c.532-1.08.318-2.379-.534-3.23-.851-.852-2.15-1.064-3.23-.534-4.918 2.427-9.375 5.619-13.246 9.491-9.447 9.447-14.65 22.008-14.65 35.369.0 13.36 5.203 25.921 14.65 35.368s22.008 14.65 35.368 14.65c13.361.0 25.921-5.203 35.369-14.65 3.872-3.871 7.064-8.328 9.491-13.246C97.826 68.608 97.611 67.309 96.76 66.458z"/></svg></label></div></header><article><h1>zooKeeper</h1><p class=meta>最近编辑于
+Sep 15, 2022</p><ul class=tags></ul><aside class=mainTOC><details><summary>目录</summary><nav id=TableOfContents><ol><li><a href=#zookeeper是什么>ZooKeeper是什么？</a><ol><li><a href=#特点-文件系统--监听机制>特点: 文件系统 + 监听机制</a></li><li><a href=#作用顶级开源项目怎么使用>作用（顶级开源项目怎么使用？）</a></li><li><a href=#元数据存储>元数据存储</a></li><li><a href=#master选举>Master选举</a></li><li><a href=#分布式协调>分布式协调</a></li></ol></li><li><a href=#curator客户端框架>curator客户端框架</a><ol><li><a href=#watcher监听机制标准的事件通知zkclient自带>Watcher监听机制（标准的事件通知zkclient自带）</a></li></ol></li><li><a href=#典型运用场景>典型运用场景</a><ol><li><a href=#dubbo的服务注册发现>Dubbo的服务注册发现</a></li><li><a href=#分布式锁>[[分布式锁]]</a></li><li><a href=#选举>选举</a></li></ol></li></ol></nav></details></aside><a href=#zookeeper是什么><h2 id=zookeeper是什么><span class=hanchor arialabel=Anchor># </span>ZooKeeper是什么？</h2></a><p><img src=http://image.clickear.top/20211030164918.png width=auto alt></p><a href=#特点-文件系统--监听机制><h3 id=特点-文件系统--监听机制><span class=hanchor arialabel=Anchor># </span>特点: 文件系统 + 监听机制</h3></a><p>Zookeeper维护一个类似文件系统的树状数据结构，这种特性使得 Zookeeper 不能用于存放大量的数据，每个节点的存放数据上限为1M</p><p>Watcher 监听机制是 Zookeeper 中非常重要的特性，我们基于 Zookeeper 上创建的节点，可以对这些节点绑定监听事件，比如可以监听节点数据变更、节点删除、子节点状态变更等事件，通过这个事件机制，可以基于 Zookeeper 实现分布式锁、集群管理等功能。</p><p>Watcher 特性：当数据发生变化的时候， Zookeeper 会产生一个 Watcher 事件，并且会发送到客户端。但是客户端只会收到一次通知。如果后续这个节点再次发生变化，那么之前设置 Watcher 的客户端不会再次收到消息。（Watcher 是一次性的操作）。可以通过循环监听去达到永久监听效果。</p><a href=#作用顶级开源项目怎么使用><h3 id=作用顶级开源项目怎么使用><span class=hanchor arialabel=Anchor># </span>作用（顶级开源项目怎么使用？）</h3></a><a href=#元数据存储><h3 id=元数据存储><span class=hanchor arialabel=Anchor># </span>元数据存储</h3></a><p>Dubbo：ZooKeeper作为注册中心</p><p>Kafka：分布式集群的集中式元数据存储，分布式协调和通知</p><a href=#master选举><h3 id=master选举><span class=hanchor arialabel=Anchor># </span>Master选举</h3></a><p>HDFS：Master选举实现HA架构</p><p>Canal、condis：分布式集群的集中式元数据存储，Master选举实现HA架构</p><a href=#分布式协调><h3 id=分布式协调><span class=hanchor arialabel=Anchor># </span>分布式协调</h3></a><p>Dubbo、Spring Cloud把系统拆分成很多的服务或者是子系统</p><p>ZooKeeper分布式锁</p><a href=#curator客户端框架><h2 id=curator客户端框架><span class=hanchor arialabel=Anchor># </span>curator客户端框架</h2></a><p>优秀案例，参考dubbo的使用。(<code>org.apache.dubbo.remoting.zookeeper</code> 包)</p><p>dubbo基于curator框架，简单的封装了一层简单的应用。有support层的abstract接口，是为了前期兼容zk-client框架。后续版本仅支持curator客户端框架。</p><p><img src=http://image.clickear.top/20211030165405.png width=auto alt=http://image.clickear.top/20211030165405.png></p><p>ZookeeperTransporter，主要用来根据配置来获取ZookeeperClient实例，会有缓存来复用。</p><p>ZookeeperClient: 封装的zookeeper操作接口。支持创建节点、删除节点、添加监听器等</p><ul><li>DataListener 数据变更，内部通过<code>TreeCache</code>来实现</li><li>StateListener 连接状态变更，即连接状态变更，基于curator的<code>ConnectionStateListener</code>实现，与curator相比，新增了*<code>NEW_SESSION_CREATED</code> 状态。*</li><li>ChildListener 监听子节点的变更情况。通过curator来<code>CuratorWatcher</code> 来实现</li></ul><a href=#watcher监听机制标准的事件通知zkclient自带><h3 id=watcher监听机制标准的事件通知zkclient自带><span class=hanchor arialabel=Anchor># </span>Watcher监听机制（标准的事件通知zkclient自带）</h3></a><a href=#watcher机制><h4 id=watcher机制><span class=hanchor arialabel=Anchor># </span>watcher机制</h4></a><p>在ZooKeeper中，接口类Watcher用于表示一个标准的事件处理器，其定义了事件通知相关的逻辑，包含KeeperState和EventType两个枚举类，分别代表了通知状态和事件类型。</p><p>Watcher接口定义了事件的回调方法：process（WatchedEvent event）</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=c1>// dubbo org.apache.dubbo.remoting.zookeeper.curator 的ChildListener实现
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>Watcher</span> <span class=n>w</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Watcher</span><span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=nd>@Override</span>
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kt>void</span> <span class=nf>process</span><span class=o>(</span><span class=n>WatchedEvent</span> <span class=n>watchedEvent</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>            <span class=c1>// if client connect or disconnect to server, zookeeper will queue
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=c1>// watched event(Watcher.Event.EventType.None, .., path = null).
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getType</span><span class=o>()</span> <span class=o>==</span> <span class=n>Watcher</span><span class=o>.</span><span class=na>Event</span><span class=o>.</span><span class=na>EventType</span><span class=o>.</span><span class=na>None</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                <span class=k>return</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>						<span class=c1>// 因为watcher消费一次就没了，需要重新注册
+</span></span></span><span class=line><span class=cl><span class=c1></span>						<span class=n>client</span><span class=o>.</span><span class=na>getChildren</span><span class=o>().</span><span class=na>usingWatcher</span><span class=o>(</span><span class=k>this</span><span class=o>).</span><span class=na>forPath</span><span class=o>(</span><span class=n>path</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=o>};</span>
+</span></span></code></pre></td></tr></table></div></div><a href=#缓存方式监听curator独有><h4 id=缓存方式监听curator独有><span class=hanchor arialabel=Anchor># </span>缓存方式监听(Curator独有)</h4></a><a href=#nodecache-节点缓存的监听><h5 id=nodecache-节点缓存的监听><span class=hanchor arialabel=Anchor># </span>NodeCache 节点缓存的监听</h5></a><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>NodeCache</span> <span class=n>nodeCache</span> <span class=o>=</span>
+</span></span><span class=line><span class=cl>        <span class=k>new</span> <span class=n>NodeCache</span><span class=o>(</span><span class=n>client</span><span class=o>,</span> <span class=n>workerPath</span><span class=o>,</span> <span class=kc>false</span><span class=o>);</span>
+</span></span><span class=line><span class=cl><span class=n>NodeCacheListener</span> <span class=n>l</span> <span class=o>=</span> <span class=k>new</span> <span class=n>NodeCacheListener</span><span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=nd>@Override</span>
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kt>void</span> <span class=nf>nodeChanged</span><span class=o>()</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>ChildData</span> <span class=n>childData</span> <span class=o>=</span> <span class=n>nodeCache</span><span class=o>.</span><span class=na>getCurrentData</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=n>log</span><span class=o>.</span><span class=na>info</span><span class=o>(</span><span class=s>&#34;ZNode节点状态改变, path={}&#34;</span><span class=o>,</span> <span class=n>childData</span><span class=o>.</span><span class=na>getPath</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>        <span class=n>log</span><span class=o>.</span><span class=na>info</span><span class=o>(</span><span class=s>&#34;ZNode节点状态改变, data={}&#34;</span><span class=o>,</span> <span class=k>new</span> <span class=n>String</span><span class=o>(</span><span class=n>childData</span><span class=o>.</span><span class=na>getData</span><span class=o>(),</span> <span class=s>&#34;Utf-8&#34;</span><span class=o>));</span>
+</span></span><span class=line><span class=cl>        <span class=n>log</span><span class=o>.</span><span class=na>info</span><span class=o>(</span><span class=s>&#34;ZNode节点状态改变, stat={}&#34;</span><span class=o>,</span> <span class=n>childData</span><span class=o>.</span><span class=na>getStat</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=o>};</span>
+</span></span><span class=line><span class=cl><span class=n>nodeCache</span><span class=o>.</span><span class=na>getListenable</span><span class=o>().</span><span class=na>addListener</span><span class=o>(</span><span class=n>l</span><span class=o>);</span>
+</span></span><span class=line><span class=cl><span class=n>nodeCache</span><span class=o>.</span><span class=na>start</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// 第1次变更节点数据
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>client</span><span class=o>.</span><span class=na>setData</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>workerPath</span><span class=o>,</span> <span class=s>&#34;第1次更改内容&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl><span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// 第2次变更节点数据
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>client</span><span class=o>.</span><span class=na>setData</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>workerPath</span><span class=o>,</span> <span class=s>&#34;第2次更改内容&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span></code></pre></td></tr></table></div></div><a href=#pathchildrencache-子节点监听><h5 id=pathchildrencache-子节点监听><span class=hanchor arialabel=Anchor># </span>PathChildrenCache 子节点监听</h5></a><blockquote><p>Path Cache 用来监听ZNode的子节点事件，包括added、updateed、removed，Path Cache会同步子节点的状态，产生的事件会传递给注册的PathChildrenCacheListener</p></blockquote><p>无法对监听路径所在节点进行监听(即不能监听path对应节点的变化) 只能监听path对应节点下一级目录的子节点的变化内容(即只能监听/path/node1的变化，而不能监听/path/node1/node2 的变化) PathChildrenCache在调用start()方法时，有3种启动模式，分别为 NORMAL-初始化缓存数据为空 BUILD_INITIAL_CACHE-在start方法返回前，初始化获取每个子节点数据并缓存 POST_INITIALIZED_EVENT-在后台异步初始化数据完成后，会发送一个INITIALIZED初始化完成事件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span> <span class=kd>class</span> <span class=nc>Watcher</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=kt>void</span> <span class=nf>main</span><span class=o>(</span><span class=n>String</span><span class=o>[]</span> <span class=n>args</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>CuratorFramework</span> <span class=n>zkClient</span> <span class=o>=</span> <span class=n>getZkClient</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=n>String</span> <span class=n>path</span> <span class=o>=</span> <span class=s>&#34;/pathChildrenCache&#34;</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=kt>byte</span><span class=o>[]</span> <span class=n>initData</span> <span class=o>=</span> <span class=s>&#34;initData&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//创建节点用于测试
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>create</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>path</span><span class=o>,</span> <span class=n>initData</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>PathChildrenCache</span> <span class=n>pathChildrenCache</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PathChildrenCache</span><span class=o>(</span><span class=n>zkClient</span><span class=o>,</span> <span class=n>path</span><span class=o>,</span> <span class=kc>true</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//调用start方法开始监听 ，设置启动模式为同步加载节点数据
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>pathChildrenCache</span><span class=o>.</span><span class=na>start</span><span class=o>(</span><span class=n>PathChildrenCache</span><span class=o>.</span><span class=na>StartMode</span><span class=o>.</span><span class=na>BUILD_INITIAL_CACHE</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//添加监听器
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>pathChildrenCache</span><span class=o>.</span><span class=na>getListenable</span><span class=o>().</span><span class=na>addListener</span><span class=o>(</span><span class=k>new</span> <span class=n>PathChildrenCacheListener</span><span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nd>@Override</span>
+</span></span><span class=line><span class=cl>            <span class=kd>public</span> <span class=kt>void</span> <span class=nf>childEvent</span><span class=o>(</span><span class=n>CuratorFramework</span> <span class=n>client</span><span class=o>,</span> <span class=n>PathChildrenCacheEvent</span> <span class=n>event</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;节点数据变化,类型:&#34;</span> <span class=o>+</span> <span class=n>event</span><span class=o>.</span><span class=na>getType</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34;,路径:&#34;</span> <span class=o>+</span> <span class=n>event</span><span class=o>.</span><span class=na>getData</span><span class=o>().</span><span class=na>getPath</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>        <span class=o>});</span>
+</span></span><span class=line><span class=cl>        <span class=n>String</span> <span class=n>childNodePath</span> <span class=o>=</span> <span class=n>path</span> <span class=o>+</span> <span class=s>&#34;/child&#34;</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//创建子节点
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>create</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>childNodePath</span><span class=o>,</span> <span class=s>&#34;111&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//更新子节点
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>setData</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>childNodePath</span><span class=o>,</span> <span class=s>&#34;222&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//删除子节点
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>delete</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>childNodePath</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>Integer</span><span class=o>.</span><span class=na>MAX_VALUE</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>CuratorFramework</span> <span class=nf>getZkClient</span><span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>String</span> <span class=n>zkServerAddress</span> <span class=o>=</span> <span class=s>&#34;127.0.0.1:2182,127.0.0.1:2183,127.0.0.1:2184&#34;</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>ExponentialBackoffRetry</span> <span class=n>retryPolicy</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ExponentialBackoffRetry</span><span class=o>(</span><span class=n>1000</span><span class=o>,</span> <span class=n>3</span><span class=o>,</span> <span class=n>5000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=n>CuratorFramework</span> <span class=n>zkClient</span> <span class=o>=</span> <span class=n>CuratorFrameworkFactory</span><span class=o>.</span><span class=na>builder</span><span class=o>()</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>connectString</span><span class=o>(</span><span class=n>zkServerAddress</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>sessionTimeoutMs</span><span class=o>(</span><span class=n>5000</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>connectionTimeoutMs</span><span class=o>(</span><span class=n>5000</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>retryPolicy</span><span class=o>(</span><span class=n>retryPolicy</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>build</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=n>zkClient</span><span class=o>.</span><span class=na>start</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>zkClient</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><a href=#tree-cache-节点树缓存包含自身节点和子节点是nodecache和pathchildrencache的结合><h5 id=tree-cache-节点树缓存包含自身节点和子节点是nodecache和pathchildrencache的结合><span class=hanchor arialabel=Anchor># </span>Tree Cache 节点树缓存（包含自身节点和子节点，是NodeCache和PathChildrenCache的结合）</h5></a><blockquote><p>Path Cache和Node Cache的“合体”，监视路径下的创建、更新、删除事件，并缓存路径下所有孩子结点的数据。</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span> <span class=kd>class</span> <span class=nc>Watcher</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=kt>void</span> <span class=nf>main</span><span class=o>(</span><span class=n>String</span><span class=o>[]</span> <span class=n>args</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>CuratorFramework</span> <span class=n>zkClient</span> <span class=o>=</span> <span class=n>getZkClient</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=n>String</span> <span class=n>path</span> <span class=o>=</span> <span class=s>&#34;/treeCache&#34;</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=kt>byte</span><span class=o>[]</span> <span class=n>initData</span> <span class=o>=</span> <span class=s>&#34;initData&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//创建节点用于测试
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>create</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>path</span><span class=o>,</span> <span class=n>initData</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>TreeCache</span> <span class=n>treeCache</span> <span class=o>=</span> <span class=k>new</span> <span class=n>TreeCache</span><span class=o>(</span><span class=n>zkClient</span><span class=o>,</span> <span class=n>path</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//调用start方法开始监听
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>treeCache</span><span class=o>.</span><span class=na>start</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//添加TreeCacheListener监听器
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>treeCache</span><span class=o>.</span><span class=na>getListenable</span><span class=o>().</span><span class=na>addListener</span><span class=o>(</span><span class=k>new</span> <span class=n>TreeCacheListener</span><span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>            <span class=nd>@Override</span>
+</span></span><span class=line><span class=cl>            <span class=kd>public</span> <span class=kt>void</span> <span class=nf>childEvent</span><span class=o>(</span><span class=n>CuratorFramework</span> <span class=n>client</span><span class=o>,</span> <span class=n>TreeCacheEvent</span> <span class=n>event</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>                <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;监听到节点数据变化，类型：&#34;</span><span class=o>+</span><span class=n>event</span><span class=o>.</span><span class=na>getType</span><span class=o>()+</span><span class=s>&#34;,路径：&#34;</span><span class=o>+</span><span class=n>event</span><span class=o>.</span><span class=na>getData</span><span class=o>().</span><span class=na>getPath</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>            <span class=o>}</span>
+</span></span><span class=line><span class=cl>        <span class=o>});</span>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//更新父节点数据
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>setData</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>path</span><span class=o>,</span> <span class=s>&#34;222&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=n>String</span> <span class=n>childNodePath</span> <span class=o>=</span> <span class=n>path</span> <span class=o>+</span> <span class=s>&#34;/child&#34;</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//创建子节点
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>create</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>childNodePath</span><span class=o>,</span> <span class=s>&#34;111&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//更新子节点
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>setData</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>childNodePath</span><span class=o>,</span> <span class=s>&#34;222&#34;</span><span class=o>.</span><span class=na>getBytes</span><span class=o>());</span>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>1000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=c1>//删除子节点
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>zkClient</span><span class=o>.</span><span class=na>delete</span><span class=o>().</span><span class=na>forPath</span><span class=o>(</span><span class=n>childNodePath</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>Thread</span><span class=o>.</span><span class=na>sleep</span><span class=o>(</span><span class=n>Integer</span><span class=o>.</span><span class=na>MAX_VALUE</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>CuratorFramework</span> <span class=nf>getZkClient</span><span class=o>()</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>String</span> <span class=n>zkServerAddress</span> <span class=o>=</span> <span class=s>&#34;127.0.0.1:2182,127.0.0.1:2183,127.0.0.1:2184&#34;</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>ExponentialBackoffRetry</span> <span class=n>retryPolicy</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ExponentialBackoffRetry</span><span class=o>(</span><span class=n>1000</span><span class=o>,</span> <span class=n>3</span><span class=o>,</span> <span class=n>5000</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>        <span class=n>CuratorFramework</span> <span class=n>zkClient</span> <span class=o>=</span> <span class=n>CuratorFrameworkFactory</span><span class=o>.</span><span class=na>builder</span><span class=o>()</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>connectString</span><span class=o>(</span><span class=n>zkServerAddress</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>sessionTimeoutMs</span><span class=o>(</span><span class=n>5000</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>connectionTimeoutMs</span><span class=o>(</span><span class=n>5000</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>retryPolicy</span><span class=o>(</span><span class=n>retryPolicy</span><span class=o>)</span>
+</span></span><span class=line><span class=cl>                <span class=o>.</span><span class=na>build</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=n>zkClient</span><span class=o>.</span><span class=na>start</span><span class=o>();</span>
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>zkClient</span><span class=o>;</span>
+</span></span><span class=line><span class=cl>    <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><a href=#典型运用场景><h2 id=典型运用场景><span class=hanchor arialabel=Anchor># </span>典型运用场景</h2></a><a href=#dubbo的服务注册发现><h3 id=dubbo的服务注册发现><span class=hanchor arialabel=Anchor># </span>Dubbo的服务注册发现</h3></a><p><img src=http://image.clickear.top/20211030154555.png width=auto alt></p><p>问题:</p><ol><li>Provider 会把一长串 URL（dubbo://xxx 的字符串）写入到 Zookeeper 里面某个节点里面去。</li><li>Consumer 的注册也是类似，会写到 Zookeeper 里面某个节点（Consumer 写入的原因，是因为 OPS 服务治理的时候需要实时的消费者数据）。</li><li>Consumer 发起一个订阅，订阅相关的服务。</li><li>当某个服务的 Provider 列表有变化的时候，Zookeeper 会将对应的变化通知到订阅过这个服务的 Consumer 列表</li></ol><a href=#分布式锁><h3 id=分布式锁><span class=hanchor arialabel=Anchor># </span><a href=/dg3/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81 rel=noopener class=internal-link data-src=/dg3/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81>分布式锁</a></h3></a><a href=#选举><h3 id=选举><span class=hanchor arialabel=Anchor># </span>选举</h3></a><p>通过超过半数即是master。</p></article><hr><div class=page-end id=footer><div class=backlinks-container><h3>反向链接</h3><ul class=backlinks><li><a href=/dg3/%E5%88%86%E5%B8%83%E5%BC%8Fid/ data-ctx=zooKeeper data-src=/%E5%88%86%E5%B8%83%E5%BC%8Fid class=internal-link>分布式id</a></li><li><a href=/dg3/-%E5%88%86%E5%B8%83%E5%BC%8F/ data-ctx=zooKeeper data-src=/-%E5%88%86%E5%B8%83%E5%BC%8F class=internal-link>∑ 分布式</a></li></ul></div><div><script src=https://cdn.jsdelivr.net/npm/d3@6.7.0/dist/d3.min.js integrity="sha256-+7jaYCp29O1JusNWHaYtgUn6EhuP0VaFuswhNV06MyI=" crossorigin=anonymous></script><h3>内部链接关系图</h3><div id=graph-container></div><style>:root{--g-node:var(--secondary);--g-node-active:var(--primary);--g-node-inactive:var(--visited);--g-link:var(--outlinegray);--g-link-active:#5a7282}</style><script src=https://clickear.github.io/dg3/js/graph.abd4bc2af3869a96524d7d23b76152c7.js></script></div></div><hr><script src=https://giscus.app/client.js data-repo=oldwinter/knowledge-garden data-repo-id=R_kgDOHT-NGQ data-category=主发布站的评论系统 data-category-id=DIC_kwDOHT-NGc4CQ7hg data-mapping=title data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN crossorigin=anonymous async></script></div></body></html>
