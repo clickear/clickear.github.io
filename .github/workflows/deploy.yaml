@@ -16,9 +16,6 @@ jobs:
           token: ${{ secrets.PERSONAL_TOKEN }}
           # 把子模块打开
           submodules: 'true'
-#       - name: Checkout submodules
-#         run: git submodule update --init --recursive
-
       - name: config1 
         run: rm -rf content/.obsidian content/cedict_ts.u8 content/Extras/Templates  && mv content/*.md content/Atlas && find content/ -name "*.md" | xargs -I file  mv -f file content &&  mv content/AboutTheGarden.md content/_index.md 
       
