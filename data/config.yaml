@@ -17,9 +17,7 @@ operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
 description:
   我的第二大脑 second brain，我的数字花园 digital garden，用obsidian双链笔记软件写作而成。
 page_title:
-  "🌿 oldwinterの数字花园"
+  "🌿 clickearの数字花园"
 links:
-  - link_name: Twitter
-    link: https://twitter.com/_jzhao
   - link_name: Github
-    link: https://github.com/jackyzha0
+    link: https://github.com/clickear
