@@ -2,5 +2,4 @@
 Java-Interview-Advanced: 中华石杉&amp;ndash;互联网Java面试训练营
 Page not found · GitHub · GitHub)
 知乎播放量最多的JVM课程《jvm性能调优+面试+实战》 - 知乎 #todo/面试
-12丨缓存：数据库成为瓶颈后，动态数据的查询要如何加速？ | JAVA 架构师笔记 #todo/continue</description></item><item><title>个人效率系统工作流</title><link>https://clickear.github.io/dg3/%E4%B8%AA%E4%BA%BA%E6%95%88%E7%8E%87%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E6%B5%81/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/%E4%B8%AA%E4%BA%BA%E6%95%88%E7%8E%87%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E6%B5%81/</guid><description>[[∑ 本库 ACCESS 工作流汇总]]
-个人工作流 mermaid版 1 2 3 4 5 6 7 8 9 10 11 12 graph TD A1[web] --&amp;gt;|Cubox| B[收集箱] A2[rss] --&amp;gt;|Edge| A1 B2[DailyNote] --&amp;gt;|Obsidian| C1[闪念笔记] B --&amp;gt; C[文献笔记] C --&amp;gt; |think| E[永久笔记] C1 --&amp;gt; |think| E[永久笔记] task --&amp;gt; |滴答清单| E[项目笔记] D[项目笔记] --&amp;gt; |Kanban| E[永久笔记] F[PDF] --&amp;gt;|Zotero| C F2[Book] --&amp;gt;|Weread| C G[Video] --&amp;gt;|Feish| C 文字表格版 https://www.</description></item></channel></rss>
+12丨缓存：数据库成为瓶颈后，动态数据的查询要如何加速？ | JAVA 架构师笔记 #todo/continue</description></item></channel></rss>
