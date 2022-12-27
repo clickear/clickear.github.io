@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           submodules: recursive
       - name: Check New Commit
         run: |
@@ -45,7 +45,6 @@ jobs:
           git config pull.rebase false
           git submodule foreach git pull origin main
           echo "fetch submodule finish"
-          git remote set-url --add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
           git add --all
           git commit -m "${{ env.commit }}"
