@@ -44,10 +44,8 @@ jobs:
             echo "commitS=${commit:0:7}" >> $GITHUB_ENV
           fi
       - name: Push to master
-        if: ${{ env.commit }}
         run: |
-          rm -rf TVBoxOSC
-          sed -i '/url =/d' ./.git/config
+          echo "$env.commit" 
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --recurse-submodules
