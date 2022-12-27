@@ -1,3 +1,6 @@
+# 笔记地址
+- [clickear/knowledge-garden](https://github.com/clickear/knowledge-garden) (Updated: f1669b696866e1dd7af6109d1533adacf0d941c7)
+
 # Quartz
 
 Host your second brain and [digital garden](https://jzhao.xyz/posts/networked-thought) for free. Quartz features
