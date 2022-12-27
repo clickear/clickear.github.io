@@ -9,14 +9,6 @@ on:
         description: '忽略构建记录以重新构建'
         required: false
         type: boolean
-      donotpublish:
-        description: '构建后不提交发布新版'
-        required: false
-        type: boolean
-      testOption:
-        description: 'arm64支持，不支持ijk解码'
-        required: false
-        type: boolean
 
 jobs:
   build:
@@ -27,7 +19,7 @@ jobs:
         include:
           - userName: clickear
             repoName: knowledge-garden
-            branchName: hugo
+            branchName: main
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -39,11 +31,12 @@ jobs:
           echo "upStream=$upStream" >> $GITHUB_ENV
           commit=$(curl -sL $upStream/commits/${{ matrix.branchName }} |grep -o "/${{ matrix.userName }}/${{ matrix.repoName }}/commit/[a-z0-9]\+" |head -1 | cut -d\/ -f5)
           if ! grep -q "$commit" README.md || [ "${{ inputs.rebuild }}" == "true" ]; then
-            echo "new Commit"
+            echo "new Commit: $commit"
             echo "commit=$commit" >> $GITHUB_ENV
             echo "commitS=${commit:0:7}" >> $GITHUB_ENV
           fi
       - name: Push to master
+        if: ${{ env.commit }}
         run: |
           echo "$env.commit" 
           git config --local user.name "github-actions[bot]"
