@@ -38,7 +38,7 @@ jobs:
       - name: Push to master
         if: ${{ env.commit }}
         run: |
-          echo "$env.commit" 
+          git checkout -b hugo
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git submodule foreach git pull origin main
