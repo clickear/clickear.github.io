@@ -221,7 +221,12 @@ Content and links have been removed.</description></item><item><title>MOC文件�
 读-读：不存在任何问题，也不需要并发控制 读-写：有线程安全问题，可能会造成事务隔离性问题，可能遇到脏读，幻读，不可重复读。通过 [[MVCC]]来解决 写-写：有线程安全问题，可能会存在更新丢失问题，比如第一类更新丢失，第二类更新丢失.通过[[锁]]，[[悲观锁]]或者[[乐观锁]]来解决 因为有了MVCC，所以我们可以形成两个组合：</description></item><item><title>mysqlLRU</title><link>https://clickear.github.io/dg3/mysqlLRU/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/mysqlLRU/</guid><description>相较于[[传统LRU]]的优化
 将缓冲池分为老生代和新生代，入缓冲池的页，优先进入老生代，页被访问，才进入新生代，以解决预读失效的问题 页被访问，且在老生代停留时间超过配置阈值的，才进入新生代，以解决批量数据访问，大量热数据淘汰的问题</description></item><item><title>mysql架构</title><link>https://clickear.github.io/dg3/mysql%E6%9E%B6%E6%9E%84/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/mysql%E6%9E%B6%E6%9E%84/</guid><description>mysql架构图：
 [!NOTE] mysql架构
-连接层(连机器): 管理连接和验证 服务层(分析器，优化器、执行器): 查询解析、分析、优化、缓存、以及所有的内置函数。 1. 分析器: 词法分析、语法分析 2. 优化器: 执行计划生成、索引选择 3. 执行器，操作引擎，返回结果 引擎层([[存储引擎]])：存储存储引擎真正的负责了MySQL中数据的存储和提取 数据存储层：数据存储在文件系统中，并完成与存储引擎的交互 mysql如何执行一条语句 [[查询语句执行]]：</description></item><item><title>netty</title><link>https://clickear.github.io/dg3/netty/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/netty/</guid><description>#todo/continue
+连接层(连机器): 管理连接和验证 服务层(分析器，优化器、执行器): 查询解析、分析、优化、缓存、以及所有的内置函数。 1. 分析器: 词法分析、语法分析 2. 优化器: 执行计划生成、索引选择 3. 执行器，操作引擎，返回结果 引擎层([[存储引擎]])：存储存储引擎真正的负责了MySQL中数据的存储和提取 数据存储层：数据存储在文件系统中，并完成与存储引擎的交互 mysql如何执行一条语句 [[查询语句执行]]：</description></item><item><title>mysql调优</title><link>https://clickear.github.io/dg3/mysql%E8%B0%83%E4%BC%98/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/mysql%E8%B0%83%E4%BC%98/</guid><description>优化步骤 步骤：
+1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来;
+2.EXPLAIN+慢SQL分析;
+3.SHOW profile,查询SQL在MySQL服务器里面的执行细节和生命周期情况
+4.具体优化
+explain1 语法explain select * from xxl_job_log l where l.job_id in (select id from xxl_job_info)</description></item><item><title>mysql领域</title><link>https://clickear.github.io/dg3/mysql%E9%A2%86%E5%9F%9F/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/mysql%E9%A2%86%E5%9F%9F/</guid><description>层层递进 视频 科普文 中文书 原版书</description></item><item><title>netty</title><link>https://clickear.github.io/dg3/netty/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/netty/</guid><description>#todo/continue
 BIO&amp;amp;NIO&amp;amp;AIO模型快速实战_哔哩哔哩_bilibili
 netty和java sdk的使用
 在java sdk nio的基础上，进行二次封装。
@@ -1377,12 +1382,7 @@ Thoughts Memo 汉化组译制
 如果你手动添加内容，你会对自己造成反向压力：你会大概意识到你的收件箱变得多大——因此在添加一些价值可疑的东西之前，你会三思而行。
 参考文献 在阅读网页和 RSS 时记笔记 • Zettelkasten 方法
 网络上充满了噪音，我订阅的这部分网站也是如此。仅能靠自己找到有用的 信号。这意味着我必须决定我想知道什么，以及什么是可以忽略的。</description></item><item><title>贪婪的多巴胺-丹尼尔·利伯曼 迈克尔·E.朗</title><link>https://clickear.github.io/dg3/%E8%B4%AA%E5%A9%AA%E7%9A%84%E5%A4%9A%E5%B7%B4%E8%83%BA-%E4%B8%B9%E5%B0%BC%E5%B0%94%E5%88%A9%E4%BC%AF%E6%9B%BC-%E8%BF%88%E5%85%8B%E5%B0%94E.%E6%9C%97/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/%E8%B4%AA%E5%A9%AA%E7%9A%84%E5%A4%9A%E5%B7%B4%E8%83%BA-%E4%B8%B9%E5%B0%BC%E5%B0%94%E5%88%A9%E4%BC%AF%E6%9B%BC-%E8%BF%88%E5%85%8B%E5%B0%94E.%E6%9C%97/</guid><description>元数据 [!abstract] 贪婪的多巴胺
-书名： 贪婪的多巴胺 作者： 丹尼尔·利伯曼 迈克尔·E.朗 简介： 为什么曾经浪漫的感情也会变淡？为什么成功人士通常不会觉得自己很成功？为什么几乎所有的节食计划后来功亏一篑？为什么聪明的人也经常会做出糟糕透顶的决定？这取决于大脑中的一种单分子结构——多巴胺。这种化学物质控制着你的欲望、想象、冲动、创造力，出乎意料地影响着我们生活的方方面面。我们的身体受到“向上”和“向下”两类物质的控制。“向下”指的是控制当下的神经递质，它们决定了我们当前的感受；“向上”则是指多巴胺，它们决定了我们的长远规划、愿景、未来期望。正因如此，多巴胺并不像很多人以为的，是一种快乐分子。它其实是一种欲望分子，在我们已经获得很多的同时，让我们有更高的期许、更大的目标。多巴胺让我们把眼光放得更长远，追求更高的目标，但也同时让人欲望无止境、不知道满足。它既能让你体会成功的喜悦，也让成功变得平淡无奇；它让你投入一段感情，但也能让当初的深情被岁月磨平；它能让你获得超高的智商，但也让你与疯狂一步之遥……了解这种物质是如何影响我们的情绪、决策和生活的，能够帮助我们充分发挥大脑的潜在功能，提高办事效率，在工作和生活中获得更好的表现。 出版时间 2021-09-01 00:00:00 ISBN： 9787521731583 分类： 科学技术-自然科学 出版社： 中信出版社 高亮划线 读书笔记 本书评论 书评 No.</description></item><item><title>资料</title><link>https://clickear.github.io/dg3/mysql%E8%B0%83%E4%BC%98/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/mysql%E8%B0%83%E4%BC%98/</guid><description>优化步骤 步骤：
-1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来;
-2.EXPLAIN+慢SQL分析;
-3.SHOW profile,查询SQL在MySQL服务器里面的执行细节和生命周期情况
-4.具体优化
-explain1 语法explain select * from xxl_job_log l where l.job_id in (select id from xxl_job_info)</description></item><item><title>资料</title><link>https://clickear.github.io/dg3/reactor%E6%A8%A1%E5%BC%8F/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/reactor%E6%A8%A1%E5%BC%8F/</guid><description>[!TIP] 技巧💡
+书名： 贪婪的多巴胺 作者： 丹尼尔·利伯曼 迈克尔·E.朗 简介： 为什么曾经浪漫的感情也会变淡？为什么成功人士通常不会觉得自己很成功？为什么几乎所有的节食计划后来功亏一篑？为什么聪明的人也经常会做出糟糕透顶的决定？这取决于大脑中的一种单分子结构——多巴胺。这种化学物质控制着你的欲望、想象、冲动、创造力，出乎意料地影响着我们生活的方方面面。我们的身体受到“向上”和“向下”两类物质的控制。“向下”指的是控制当下的神经递质，它们决定了我们当前的感受；“向上”则是指多巴胺，它们决定了我们的长远规划、愿景、未来期望。正因如此，多巴胺并不像很多人以为的，是一种快乐分子。它其实是一种欲望分子，在我们已经获得很多的同时，让我们有更高的期许、更大的目标。多巴胺让我们把眼光放得更长远，追求更高的目标，但也同时让人欲望无止境、不知道满足。它既能让你体会成功的喜悦，也让成功变得平淡无奇；它让你投入一段感情，但也能让当初的深情被岁月磨平；它能让你获得超高的智商，但也让你与疯狂一步之遥……了解这种物质是如何影响我们的情绪、决策和生活的，能够帮助我们充分发挥大脑的潜在功能，提高办事效率，在工作和生活中获得更好的表现。 出版时间 2021-09-01 00:00:00 ISBN： 9787521731583 分类： 科学技术-自然科学 出版社： 中信出版社 高亮划线 读书笔记 本书评论 书评 No.</description></item><item><title>资料</title><link>https://clickear.github.io/dg3/reactor%E6%A8%A1%E5%BC%8F/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/dg3/reactor%E6%A8%A1%E5%BC%8F/</guid><description>[!TIP] 技巧💡
 基于事件模式的IO模型。非阻塞IO 几乎所有的网络连接都会经过
 accept: 连接
 read: 读取请求内容
