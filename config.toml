@@ -1,4 +1,4 @@
-baseURL = "https://clickear.github.io/dg3"
+baseURL = "https://clickear.github.io/"
 languageCode = "en"
 googleAnalytics = "G-11MD77L81V"
 relativeURLs = false
