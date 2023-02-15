@@ -334,9 +334,10 @@ excalibrain自动生成的文件</description></item><item><title>∑ flomo101�
 当你开始成为 [[🤖obsidian]]的重度用户，你大概率也会对[[∑ PKM]]开始探索，它不是以前剪藏时代的信息输入，也不是简单的任务管理。为了打造[[个人效率系统工作流]]，我选用了几个各领域最棒的效率软件，进行了[[∑ 工作和生活的效率体系建设]]，它包含4个子系统：[[个人信息管理系统]]，[[个人任务管理系统]]，[[个人任务管理系统]]，[[个人输出发布系统]]。通过一些简单的编程知识，写一点脚本，相当于加上一些胶水，让[[效率系统4大子系统联动与配合]]。
 写到这里，我沉默了。这个库，包含了几乎全部的我个人的深度思考内容，稍加整理做成课卖钱都没问题，我为什么愿意完全免费公开发布？[[🤖obsidian]]为什么能让个人用户完全免费使用，为什么有这么多开发者写插件给我们免费使用？这些行为背后都是为了流量，而后将流量变现吗？这值得深究[[开源、免费与流量]]。</description></item><item><title>∑ mq</title><link>https://clickear.github.io/-mq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/-mq/</guid><description>关键词 异步、削峰、解耦、消息分发、大事务拆分成 (小事务+ 异步)、错误重试、消费者幂、分布式、重复消费、消息丢失、顺序消费等
 什么是消息队列(MQ)? 队列是一种先进先出的数据结构。但是作为中间件，跟单机中的队列是不一样的。 毫无疑问，单机的队列是无法满足需求的，集群/分布式。 消除了单点故障、保证消息可靠性等。消息队列可以简单理解为：把要传输的数据放在队列中。消息队列做业务解耦/最终一致性/广播/错峰流控等。反之，如果需要强一致性，关注业务逻辑的处理结果，则RPC显得更为合适。
-名称定义 消费者: 生产者 broker 优点 解耦 作为一个订单系统，我们可以需要在创建订单、有库存信息或者有物流信息调用其它子系统。耦合严重。如某个系统挂了，导致该接口异常。将消息发送到队列中，需要使用的系统，去订阅的方式</description></item><item><title>∑ mysql</title><link>https://clickear.github.io/-mysql/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/-mysql/</guid><description>[toc]
+名称定义 消费者: 生产者 broker 优点 解耦 作为一个订单系统，我们可以需要在创建订单、有库存信息或者有物流信息调用其它子系统。耦合严重。如某个系统挂了，导致该接口异常。将消息发送到队列中，需要使用的系统，去订阅的方式</description></item><item><title>∑ mysql</title><link>https://clickear.github.io/-mysql/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/-mysql/</guid><description>[TOC]
 ::一览mysql mysql架构图：
 mysql思维导图：
+:: 原资料地址 mysql思维导图：
 :: 原资料地址</description></item><item><title>∑ PKM</title><link>https://clickear.github.io/-PKM/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/-PKM/</guid><description>我对pkm的定义 [[pkm 的定义]]
 Nick Milo对pkm的理解 [[PKM系统的不同侧重点-四象限图 by lyt]]
 [[PKM 的指导性原则 from lyt]]
