@@ -56,7 +56,7 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
       return "var(--g-node-active)"
     }
 
-    if(content[d.id] !=null){
+    if(content[d.id] == null){
       return "var(--g-node-none)"
     }
 
