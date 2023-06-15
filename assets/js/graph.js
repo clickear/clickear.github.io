@@ -56,6 +56,10 @@ async function drawGraph(baseUrl, isHome, pathColors, graphConfig) {
       return "var(--g-node-active)"
     }
 
+    if(content[d.id] !=null){
+      return "var(--g-node-none)"
+    }
+
     for (const pathColor of pathColors) {
       const path = Object.keys(pathColor)[0]
       const colour = pathColor[path]
