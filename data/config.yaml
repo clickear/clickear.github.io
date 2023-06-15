@@ -12,8 +12,10 @@ enableContextualBacklinks: true
 enableRecentNotes: true
 enableGitHubEdit: false
 GitHubLink: https://github.com/jackyzha0/quartz/tree/hugo/content
-enableSemanticSearch: false
-operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
+search:
+  enableSemanticSearch: false
+  operandApiKey: "REPLACE-WITH-YOUR-OPERAND-API-KEY"
+  operandIndexId: "REPLACE-WITH-YOUR-OPERAND-INDEX-ID"
 description:
   我的第二大脑 second brain，我的数字花园 digital garden，用obsidian双链笔记软件写作而成。
 page_title:
