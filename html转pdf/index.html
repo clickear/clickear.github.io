@@ -1,0 +1,1090 @@
+<!doctype html><html lang=en><head><script async defer data-website-id=08a754c4-6690-46d7-bb80-8ff93cfa232f src=https://umami.oldwinter.top/umami.js></script><meta charset=utf-8><meta name=description content="通过freemark将模板转换成html，后将html转pdf，方便扩展。支持水印
+方案选择 itext,早期是可以商业的，后面itext5.0,7.0之后不可商用。itext不可商业后，基于itext4.x版本的代码，有人fork了分支。openpdf
+html转pdf方案参考
+flying-saucer-pdf: 基于Itext支持html，但是样式只支持css2.0，不建议使用
+xhtmlrenderer: 基于itext的开源实现，样式支持比较丰富。
+itext7.0： 全新重构的itext版本，不支持商业
+wikihtml： 需要宿主机按照程序，未调研
+代码展示 开源版本，可商用 参考 xhtmlrenderer 将html转换成pdf，完美css，带图片，手动分页，解决内容断开的问题 - 煮过的花朵 - 博客园  引入pom  1 2 3 4 5 6 7 8 9 10 11 12  <!"><title>html转pdf</title><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" type=image/png href=https://clickear.github.io//icon.png><link href=https://clickear.github.io/styles.71c44505b7e0d829d246b879f2a5fad1.min.css rel=stylesheet><link href=https://clickear.github.io/styles/_light_syntax.86a48a52faebeaaf42158b72922b1c90.min.css rel=stylesheet id=theme-link><script src=https://clickear.github.io/js/darkmode.b3f60b41d3bdcb2b37845d5bbe5bdf9e.min.js></script>
+<script src=https://clickear.github.io/js/util.00639692264b21bc3ee219733d38a8be.min.js></script>
+<link rel=preload href=https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css as=style onload='this.onload=null,this.rel="stylesheet"' integrity=sha384-R4558gYOUz8mP9YWpZJjofhk+zx0AS11p36HnD2ZKj/6JR5z27gSSULCNHIRReVs crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js integrity=sha384-z1fJDqw8ZApjGO3/unPWUPsIymfsJmyrDVWC8Tv/a1HeOtGmkwNd/7xUS0Xcnvsx crossorigin=anonymous></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/contrib/copy-tex.min.js integrity=sha384-ww/583aHhxWkz5DEVn6OKtNiIaLi2iBRNZXfJRiY1Ai7tnJ9UXpEsyvOITVpTl4A crossorigin=anonymous></script>
+<script src=https://cdn.jsdelivr.net/npm/@floating-ui/core@1.2.1></script>
+<script src=https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.2.1></script>
+<script defer src=https://clickear.github.io/js/popover.aa9bc99c7c38d3ae9538f218f1416adb.min.js></script>
+<script defer src=https://clickear.github.io/js/code-title.ce4a43f09239a9efb48fee342e8ef2df.min.js></script>
+<script defer src=https://clickear.github.io/js/clipboard.2913da76d3cb21c5deaa4bae7da38c9f.min.js></script>
+<script defer src=https://clickear.github.io/js/callouts.7723cac461d613d118ee8bb8216b9838.min.js></script>
+<script>const SEARCH_ENABLED=!1,LATEX_ENABLED=!0,PRODUCTION=!0,BASE_URL="https://clickear.github.io/",fetchData=Promise.all([fetch("https://clickear.github.io/indices/linkIndex.c0d5af5786787412e0a9e710a491758e.min.json").then(e=>e.json()).then(e=>({index:e.index,links:e.links})),fetch("https://clickear.github.io/indices/contentIndex.941766aa6c610303539c4c92c7a864e9.min.json").then(e=>e.json())]).then(([{index:e,links:t},n])=>({index:e,links:t,content:n})),render=()=>{const e=new URL(BASE_URL),t=e.pathname,n=window.location.pathname,s=t==n;addCopyButtons(),addCollapsibleCallouts(),initPopover("https://clickear.github.io",!0);const o=document.getElementById("footer");if(o){const e=document.getElementById("graph-container");if(!e)return requestAnimationFrame(render);e.textContent="";const t=s&&!1;drawGraph("https://clickear.github.io",t,[{"/moc":"#4388cc"}],t?{centerForce:1,depth:-1,enableDrag:!0,enableLegend:!1,enableZoom:!0,fontSize:.5,linkDistance:1,opacityScale:3,repelForce:1,scale:1.4}:{centerForce:1,depth:1,enableDrag:!0,enableLegend:!1,enableZoom:!0,fontSize:.6,linkDistance:1,opacityScale:3,repelForce:2,scale:1.2})}var i=document.getElementsByClassName("mermaid");i.length>0&&import("https://unpkg.com/mermaid@9/dist/mermaid.esm.min.mjs").then(e=>{e.default.init()});function a(n){const e=n.target,t=e.className.split(" "),s=t.includes("broken"),o=t.includes("internal-link");plausible("Link Click",{props:{href:e.href,broken:s,internal:o,graph:!1}})}const r=document.querySelectorAll("a");for(link of r)link.className.includes("root-title")&&link.addEventListener("click",a,{once:!0})},init=(e=document)=>{addCopyButtons(),addTitleToCodeBlocks(),renderMathInElement(e.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}],macros:{'’':"'"},throwOnError:!1})}</script><script>window.Million={navigate:e=>window.location.href=e,prefetch:()=>{}},window.addEventListener("DOMContentLoaded",()=>{init(),render()})</script><script defer data-domain=clickear.github.io src=https://plausible.io/js/script.js></script>
+<script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script></head><body><div id=search-container><div id=search-space><input autocomplete=off id=search-bar name=search type=text aria-label="search any" placeholder=支持标题及全文搜索...><div id=results-container></div></div></div><script src=https://cdn.jsdelivr.net/npm/flexsearch@0.7.21/dist/flexsearch.bundle.js integrity="sha256-i3A0NZGkhsKjVMzFxv3ksk0DZh3aXqu0l49Bbh0MdjE=" crossorigin=anonymous defer></script>
+<script defer src=https://clickear.github.io/js/full-text-search.e6e2e0c213187ca0c703d6e2c7a77fcd.min.js></script><div class=singlePage><header><h1 id=page-title><a class=root-title href=https://clickear.github.io/>🌿 clickearの数字花园</a></h1><div class=spacer></div><div id=search-icon><p>search any</p><svg tabindex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search Icon</title><desc id="desc">Icon to open search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"/><circle cx="8" cy="8" r="7"/></g></svg></div><div class=darkmode><input class=toggle id=darkmode-toggle type=checkbox tabindex=-1>
+<label id=toggle-label-light for=darkmode-toggle tabindex=-1><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="dayIcon" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35"><title>Light Mode</title><path d="M6 17.5C6 16.672 5.328 16 4.5 16h-3C.672 16 0 16.672.0 17.5S.672 19 1.5 19h3C5.328 19 6 18.328 6 17.5zM7.5 26c-.414.0-.789.168-1.061.439l-2 2C4.168 28.711 4 29.086 4 29.5 4 30.328 4.671 31 5.5 31c.414.0.789-.168 1.06-.44l2-2C8.832 28.289 9 27.914 9 27.5 9 26.672 8.329 26 7.5 26zm10-20C18.329 6 19 5.328 19 4.5v-3C19 .672 18.329.0 17.5.0S16 .672 16 1.5v3C16 5.328 16.671 6 17.5 6zm10 3c.414.0.789-.168 1.06-.439l2-2C30.832 6.289 31 5.914 31 5.5 31 4.672 30.329 4 29.5 4c-.414.0-.789.168-1.061.44l-2 2C26.168 6.711 26 7.086 26 7.5 26 8.328 26.671 9 27.5 9zM6.439 8.561C6.711 8.832 7.086 9 7.5 9 8.328 9 9 8.328 9 7.5c0-.414-.168-.789-.439-1.061l-2-2C6.289 4.168 5.914 4 5.5 4 4.672 4 4 4.672 4 5.5c0 .414.168.789.439 1.06l2 2.001zM33.5 16h-3c-.828.0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5h3c.828.0 1.5-.672 1.5-1.5S34.328 16 33.5 16zM28.561 26.439C28.289 26.168 27.914 26 27.5 26c-.828.0-1.5.672-1.5 1.5.0.414.168.789.439 1.06l2 2C28.711 30.832 29.086 31 29.5 31c.828.0 1.5-.672 1.5-1.5.0-.414-.168-.789-.439-1.061l-2-2zM17.5 29c-.829.0-1.5.672-1.5 1.5v3c0 .828.671 1.5 1.5 1.5s1.5-.672 1.5-1.5v-3C19 29.672 18.329 29 17.5 29zm0-22C11.71 7 7 11.71 7 17.5S11.71 28 17.5 28 28 23.29 28 17.5 23.29 7 17.5 7zm0 18c-4.136.0-7.5-3.364-7.5-7.5s3.364-7.5 7.5-7.5 7.5 3.364 7.5 7.5S21.636 25 17.5 25z"/></svg></label><label id=toggle-label-dark for=darkmode-toggle tabindex=-1><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="nightIcon" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'"><title>Dark Mode</title><path d="M96.76 66.458c-.853-.852-2.15-1.064-3.23-.534-6.063 2.991-12.858 4.571-19.655 4.571C62.022 70.495 50.88 65.88 42.5 57.5 29.043 44.043 25.658 23.536 34.076 6.47c.532-1.08.318-2.379-.534-3.23-.851-.852-2.15-1.064-3.23-.534-4.918 2.427-9.375 5.619-13.246 9.491-9.447 9.447-14.65 22.008-14.65 35.369.0 13.36 5.203 25.921 14.65 35.368s22.008 14.65 35.368 14.65c13.361.0 25.921-5.203 35.369-14.65 3.872-3.871 7.064-8.328 9.491-13.246C97.826 68.608 97.611 67.309 96.76 66.458z"/></svg></label></div></header><article><h1>html转pdf</h1><p class=meta>最近编辑于
+Jul 17, 2023</p><ul class=tags></ul><aside class=mainTOC><details open><summary>目录</summary><nav id=TableOfContents><ol><li><a href=#方案选择>方案选择</a></li><li><a href=#代码展示>代码展示</a><ol><li><a href=#开源版本可商用-参考xhtmlrenderer-将html转换成pdf完美css带图片手动分页解决内容断开的问题---煮过的花朵---博客园httpswwwcnblogscomtrisolaris2018p10754914html>开源版本，可商用 参考<a href=https://www.cnblogs.com/trisolaris2018/p/10754914.html>xhtmlrenderer 将html转换成pdf，完美css，带图片，手动分页，解决内容断开的问题 - 煮过的花朵 - 博客园</a></a></li><li><a href=#itext70不可商用>itext7.0。不可商用</a></li></ol></li></ol></nav></details></aside><p>通过freemark将模板转换成html，后将html转pdf，方便扩展。支持水印</p><a href=#方案选择><h2 id=方案选择><span class=hanchor arialabel=Anchor># </span>方案选择</h2></a><p>itext,早期是可以商业的，后面itext5.0,7.0之后不可商用。itext不可商业后，基于itext4.x版本的代码，有人fork了分支。openpdf</p><p>html转pdf方案参考</p><p>flying-saucer-pdf: 基于Itext支持html，但是样式只支持css2.0，不建议使用<br>xhtmlrenderer: 基于itext的开源实现，样式支持比较丰富。<br>itext7.0： 全新重构的itext版本，不支持商业<br>wikihtml： 需要宿主机按照程序，未调研</p><a href=#代码展示><h2 id=代码展示><span class=hanchor arialabel=Anchor># </span>代码展示</h2></a><h3 id=开源版本可商用-参考xhtmlrenderer-将html转换成pdf完美css带图片手动分页解决内容断开的问题---煮过的花朵---博客园httpswwwcnblogscomtrisolaris2018p10754914html>开源版本，可商用 参考
+<a href=https://www.cnblogs.com/trisolaris2018/p/10754914.html rel=noopener>xhtmlrenderer 将html转换成pdf，完美css，带图片，手动分页，解决内容断开的问题 - 煮过的花朵 - 博客园</a></h3><ol><li>引入pom</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=o>&lt;!--</span> <span class=n>freemarker</span> <span class=n>读取html模板文件</span> <span class=o>--&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;</span><span class=n>dependency</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>groupId</span><span class=o>&gt;</span><span class=n>org</span><span class=o>.</span><span class=na>freemarker</span><span class=o>&lt;/</span><span class=n>groupId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>artifactId</span><span class=o>&gt;</span><span class=n>freemarker</span><span class=o>&lt;/</span><span class=n>artifactId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>version</span><span class=o>&gt;</span><span class=n>2</span><span class=o>.</span><span class=na>3</span><span class=o>.</span><span class=na>30</span><span class=o>&lt;/</span><span class=n>version</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;/</span><span class=n>dependency</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;!--</span> <span class=n>xml</span> <span class=n>将html模板文件转换成pdf</span> <span class=o>--&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;</span><span class=n>dependency</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>groupId</span><span class=o>&gt;</span><span class=n>org</span><span class=o>.</span><span class=na>xhtmlrenderer</span><span class=o>&lt;/</span><span class=n>groupId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>artifactId</span><span class=o>&gt;</span><span class=n>core</span><span class=o>-</span><span class=n>renderer</span><span class=o>&lt;/</span><span class=n>artifactId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>version</span><span class=o>&gt;</span><span class=n>R8</span><span class=o>&lt;/</span><span class=n>version</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;/</span><span class=n>dependency</span><span class=o>&gt;</span>
+</span></span></code></pre></td></tr></table></div></div><ol start=2><li>工具类</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span><span class=lnt>217
+</span><span class=lnt>218
+</span><span class=lnt>219
+</span><span class=lnt>220
+</span><span class=lnt>221
+</span><span class=lnt>222
+</span><span class=lnt>223
+</span><span class=lnt>224
+</span><span class=lnt>225
+</span><span class=lnt>226
+</span><span class=lnt>227
+</span><span class=lnt>228
+</span><span class=lnt>229
+</span><span class=lnt>230
+</span><span class=lnt>231
+</span><span class=lnt>232
+</span><span class=lnt>233
+</span><span class=lnt>234
+</span><span class=lnt>235
+</span><span class=lnt>236
+</span><span class=lnt>237
+</span><span class=lnt>238
+</span><span class=lnt>239
+</span><span class=lnt>240
+</span><span class=lnt>241
+</span><span class=lnt>242
+</span><span class=lnt>243
+</span><span class=lnt>244
+</span><span class=lnt>245
+</span><span class=lnt>246
+</span><span class=lnt>247
+</span><span class=lnt>248
+</span><span class=lnt>249
+</span><span class=lnt>250
+</span><span class=lnt>251
+</span><span class=lnt>252
+</span><span class=lnt>253
+</span><span class=lnt>254
+</span><span class=lnt>255
+</span><span class=lnt>256
+</span><span class=lnt>257
+</span><span class=lnt>258
+</span><span class=lnt>259
+</span><span class=lnt>260
+</span><span class=lnt>261
+</span><span class=lnt>262
+</span><span class=lnt>263
+</span><span class=lnt>264
+</span><span class=lnt>265
+</span><span class=lnt>266
+</span><span class=lnt>267
+</span><span class=lnt>268
+</span><span class=lnt>269
+</span><span class=lnt>270
+</span><span class=lnt>271
+</span><span class=lnt>272
+</span><span class=lnt>273
+</span><span class=lnt>274
+</span><span class=lnt>275
+</span><span class=lnt>276
+</span><span class=lnt>277
+</span><span class=lnt>278
+</span><span class=lnt>279
+</span><span class=lnt>280
+</span><span class=lnt>281
+</span><span class=lnt>282
+</span><span class=lnt>283
+</span><span class=lnt>284
+</span><span class=lnt>285
+</span><span class=lnt>286
+</span><span class=lnt>287
+</span><span class=lnt>288
+</span><span class=lnt>289
+</span><span class=lnt>290
+</span><span class=lnt>291
+</span><span class=lnt>292
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kn>package</span> <span class=nn>com.lucky.attendance.common.utils</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.lowagie.text.BadElementException</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.lowagie.text.DocumentException</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.lowagie.text.Element</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.lowagie.text.Rectangle</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.lowagie.text.pdf.*</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.lowagie.text.pdf.codec.Base64</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>freemarker.template.Configuration</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>freemarker.template.Template</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>freemarker.template.TemplateException</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>lombok.extern.slf4j.Slf4j</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.apache.commons.lang.StringUtils</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.springframework.core.io.ClassPathResource</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.extend.FSImage</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.extend.ReplacedElement</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.extend.ReplacedElementFactory</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.extend.UserAgentCallback</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.layout.LayoutContext</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.pdf.ITextFSImage</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.pdf.ITextFontResolver</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.pdf.ITextImageElement</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.pdf.ITextRenderer</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.render.BlockBox</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.xhtmlrenderer.simple.extend.FormSubmissionListener</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.servlet.http.HttpServletResponse</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.swing.*</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.awt.*</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.ByteArrayOutputStream</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.IOException</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.StringWriter</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.net.URLEncoder</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.util.Locale</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl><span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm> * @author  
+</span></span></span><span class=line><span class=cl><span class=cm> * @description  
+</span></span></span><span class=line><span class=cl><span class=cm> * @date 2022/3/3 18:37  
+</span></span></span><span class=line><span class=cl><span class=cm> * @since 1.0  
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=nd>@Slf4j</span>  
+</span></span><span class=line><span class=cl><span class=kd>public</span> <span class=kd>class</span> <span class=nc>PdfTemplateUtil</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 水印旋转角度  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>  
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=kd>final</span> <span class=n>Integer</span> <span class=n>DEFAULT_WATER_MARK_ANGEL</span> <span class=o>=</span> <span class=n>45</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 水印文字透明度  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>  
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>final</span> <span class=kd>static</span> <span class=kt>float</span> <span class=n>DEFAULT_WATER_MARK_OPACITY</span> <span class=o>=</span> <span class=n>0</span><span class=o>.</span><span class=na>1f</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 水印字体大小  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>  
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>final</span> <span class=kd>static</span> <span class=kt>int</span> <span class=n>DEFAULT_WATER_MARK_FONT_SIZE</span> <span class=o>=</span> <span class=n>12</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/***  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 通过模板导出pdf文件  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param data  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param templateFileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param waterMarker 水印文字内容。  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws Exception  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>    <span class=kd>public</span> <span class=kd>static</span> <span class=n>ByteArrayOutputStream</span> <span class=nf>createPDF</span><span class=o>(</span><span class=n>Object</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>templateFileName</span><span class=o>,</span> <span class=n>String</span> <span class=n>waterMarker</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 生成html  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>String</span> <span class=n>html</span> <span class=o>=</span> <span class=n>generateHtml</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>templateFileName</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 渲染成pdf  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=k>return</span> <span class=n>convertToPdf</span><span class=o>(</span><span class=n>html</span><span class=o>,</span> <span class=n>waterMarker</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 创建pdf，并输出到response  
+</span></span></span><span class=line><span class=cl><span class=cm>     *     * @param data  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param templateFileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param fileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param watermark 水印  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param response  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>  
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=kt>void</span> <span class=nf>createPDFAndFlush</span><span class=o>(</span><span class=n>Object</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>templateFileName</span><span class=o>,</span> <span class=n>String</span> <span class=n>fileName</span><span class=o>,</span> <span class=n>String</span> <span class=n>watermark</span><span class=o>,</span> <span class=n>HttpServletResponse</span> <span class=n>response</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=k>try</span> <span class=o>(</span><span class=n>ByteArrayOutputStream</span> <span class=n>outputStream</span> <span class=o>=</span> <span class=n>createPDF</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>templateFileName</span><span class=o>,</span> <span class=n>watermark</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>response</span><span class=o>.</span><span class=na>setContentType</span><span class=o>(</span><span class=s>&#34;application/x-msdownload&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 告诉浏览器，当前响应数据要求用户干预保存到文件中，以及文件名是什么 如果文件名有中文，必须URL编码  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>fileName</span> <span class=o>=</span> <span class=n>URLEncoder</span><span class=o>.</span><span class=na>encode</span><span class=o>(</span><span class=n>fileName</span><span class=o>,</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>response</span><span class=o>.</span><span class=na>setHeader</span><span class=o>(</span><span class=s>&#34;Content-Disposition&#34;</span><span class=o>,</span> <span class=s>&#34;attachment;filename=&#34;</span> <span class=o>+</span> <span class=n>fileName</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>outputStream</span><span class=o>.</span><span class=na>writeTo</span><span class=o>(</span><span class=n>response</span><span class=o>.</span><span class=na>getOutputStream</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>log</span><span class=o>.</span><span class=na>error</span><span class=o>(</span><span class=s>&#34;exportDetailData2Pdf exception:&#34;</span><span class=o>,</span> <span class=n>e</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 使用freemarker生成html  
+</span></span></span><span class=line><span class=cl><span class=cm>     *     * @param data  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param templateFileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @return  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws IOException  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws TemplateException  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>generateHtml</span><span class=o>(</span><span class=n>Object</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>templateFileName</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>IOException</span><span class=o>,</span> <span class=n>TemplateException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=k>try</span> <span class=o>(</span><span class=n>StringWriter</span> <span class=n>writer</span> <span class=o>=</span> <span class=k>new</span> <span class=n>StringWriter</span><span class=o>())</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 创建一个FreeMarker实例, 负责管理FreeMarker模板的Configuration实例  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>Configuration</span> <span class=n>configuration</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Configuration</span><span class=o>(</span><span class=n>Configuration</span><span class=o>.</span><span class=na>DEFAULT_INCOMPATIBLE_IMPROVEMENTS</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 指定FreeMarker模板文件的位置  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>configuration</span><span class=o>.</span><span class=na>setClassForTemplateLoading</span><span class=o>(</span><span class=n>PdfTemplateUtil</span><span class=o>.</span><span class=na>class</span><span class=o>,</span> <span class=s>&#34;/templates&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 设置模板的编码格式  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>configuration</span><span class=o>.</span><span class=na>setEncoding</span><span class=o>(</span><span class=n>Locale</span><span class=o>.</span><span class=na>CHINA</span><span class=o>,</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>//设置兼容${xxx}方式取值为空的情况  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>configuration</span><span class=o>.</span><span class=na>setClassicCompatible</span><span class=o>(</span><span class=kc>true</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 获取模板文件  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>Template</span> <span class=n>template</span> <span class=o>=</span> <span class=n>configuration</span><span class=o>.</span><span class=na>getTemplate</span><span class=o>(</span><span class=n>templateFileName</span><span class=o>,</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 将数据输出到html中  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>template</span><span class=o>.</span><span class=na>process</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>writer</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>writer</span><span class=o>.</span><span class=na>flush</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>writer</span><span class=o>.</span><span class=na>toString</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=n>ByteArrayOutputStream</span> <span class=nf>convertToPdf</span><span class=o>(</span><span class=n>String</span> <span class=n>htmlStr</span><span class=o>,</span> <span class=n>String</span> <span class=n>watermark</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>(</span><span class=n>StringUtils</span><span class=o>.</span><span class=na>isBlank</span><span class=o>(</span><span class=n>htmlStr</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=kc>null</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// itext开源版本实现  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>ITextRenderer</span> <span class=n>renderer</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ITextRenderer</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>ByteArrayOutputStream</span> <span class=n>out</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ByteArrayOutputStream</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>renderer</span><span class=o>.</span><span class=na>setPDFVersion</span><span class=o>(</span><span class=n>PdfWriter</span><span class=o>.</span><span class=na>VERSION_1_7</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=n>renderer</span><span class=o>.</span><span class=na>setDocumentFromString</span><span class=o>(</span><span class=n>htmlStr</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 解决base64图片支持问题  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>renderer</span><span class=o>.</span><span class=na>getSharedContext</span><span class=o>().</span><span class=na>setReplacedElementFactory</span><span class=o>(</span><span class=k>new</span> <span class=n>B64ImgReplacedElementFactory</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>        <span class=n>ITextFontResolver</span> <span class=n>fontResolver</span> <span class=o>=</span> <span class=n>renderer</span><span class=o>.</span><span class=na>getFontResolver</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 解决中文支持问题，参数为字体的路径，html页面也必须引入字体  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>fontResolver</span><span class=o>.</span><span class=na>addFont</span><span class=o>(</span><span class=n>getResourceFontPath</span><span class=o>(),</span> <span class=n>BaseFont</span><span class=o>.</span><span class=na>IDENTITY_H</span><span class=o>,</span> <span class=n>BaseFont</span><span class=o>.</span><span class=na>NOT_EMBEDDED</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=n>renderer</span><span class=o>.</span><span class=na>layout</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>renderer</span><span class=o>.</span><span class=na>createPDF</span><span class=o>(</span><span class=n>out</span><span class=o>,</span> <span class=kc>false</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=n>out</span><span class=o>.</span><span class=na>flush</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>renderer</span><span class=o>.</span><span class=na>finishPDF</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=o>(</span><span class=n>StringUtils</span><span class=o>.</span><span class=na>isNotEmpty</span><span class=o>(</span><span class=n>watermark</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=kt>byte</span><span class=o>[]</span> <span class=n>data</span> <span class=o>=</span> <span class=n>out</span><span class=o>.</span><span class=na>toByteArray</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=n>out</span><span class=o>.</span><span class=na>close</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>watermark</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>watermark</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span> <span class=k>else</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>out</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 增加水印，水印默认铺满全page  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 不使用onEndPage事件进行处理，此事件仅处理最后一页数据  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param data pdf数据  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param watermark 水印文字  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @return  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws IOException  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws DocumentException  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>ByteArrayOutputStream</span> <span class=nf>watermark</span><span class=o>(</span><span class=kt>byte</span><span class=o>[]</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>watermark</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>IOException</span><span class=o>,</span> <span class=n>DocumentException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=n>PdfReader</span> <span class=n>reader</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PdfReader</span><span class=o>(</span><span class=n>data</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=n>ByteArrayOutputStream</span> <span class=n>outputStream</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ByteArrayOutputStream</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>PdfStamper</span> <span class=n>stamper</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PdfStamper</span><span class=o>(</span><span class=n>reader</span><span class=o>,</span> <span class=n>outputStream</span><span class=o>,</span> <span class=n>PdfWriter</span><span class=o>.</span><span class=na>VERSION_1_7</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=n>PdfContentByte</span> <span class=n>under</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 字体  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>BaseFont</span> <span class=n>font</span> <span class=o>=</span> <span class=n>BaseFont</span><span class=o>.</span><span class=na>createFont</span><span class=o>(</span><span class=n>getResourceFontPath</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34;,1&#34;</span><span class=o>,</span> <span class=n>BaseFont</span><span class=o>.</span><span class=na>IDENTITY_H</span><span class=o>,</span> <span class=n>BaseFont</span><span class=o>.</span><span class=na>NOT_EMBEDDED</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 原pdf文件的总页数  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kt>int</span> <span class=n>pageSize</span> <span class=o>=</span> <span class=n>reader</span><span class=o>.</span><span class=na>getNumberOfPages</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>PdfGState</span> <span class=n>gs</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PdfGState</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 设置填充字体不透明度为0.1f  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>gs</span><span class=o>.</span><span class=na>setFillOpacity</span><span class=o>(</span><span class=n>DEFAULT_WATER_MARK_OPACITY</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=n>JLabel</span> <span class=n>label</span> <span class=o>=</span> <span class=k>new</span> <span class=n>JLabel</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>label</span><span class=o>.</span><span class=na>setText</span><span class=o>(</span><span class=n>watermark</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=n>FontMetrics</span> <span class=n>metrics</span> <span class=o>=</span> <span class=n>label</span><span class=o>.</span><span class=na>getFontMetrics</span><span class=o>(</span><span class=n>label</span><span class=o>.</span><span class=na>getFont</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 字符串的高, 只和字体有关  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kt>int</span> <span class=n>textH</span> <span class=o>=</span> <span class=n>metrics</span><span class=o>.</span><span class=na>getHeight</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 字符串的宽  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kt>int</span> <span class=n>textW</span> <span class=o>=</span> <span class=n>metrics</span><span class=o>.</span><span class=na>stringWidth</span><span class=o>(</span><span class=n>label</span><span class=o>.</span><span class=na>getText</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=k>for</span> <span class=o>(</span><span class=kt>int</span> <span class=n>i</span> <span class=o>=</span> <span class=n>1</span><span class=o>;</span> <span class=n>i</span> <span class=o>&lt;=</span> <span class=n>pageSize</span><span class=o>;</span> <span class=n>i</span><span class=o>++)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>Rectangle</span> <span class=n>rectangle</span> <span class=o>=</span> <span class=n>reader</span><span class=o>.</span><span class=na>getPageSize</span><span class=o>(</span><span class=n>i</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 水印在之前文本下  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>under</span> <span class=o>=</span> <span class=n>stamper</span><span class=o>.</span><span class=na>getUnderContent</span><span class=o>(</span><span class=n>i</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>under</span><span class=o>.</span><span class=na>beginText</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 文字水印 颜色  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>under</span><span class=o>.</span><span class=na>setColorFill</span><span class=o>(</span><span class=n>Color</span><span class=o>.</span><span class=na>darkGray</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 文字水印 字体及字号  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>under</span><span class=o>.</span><span class=na>setFontAndSize</span><span class=o>(</span><span class=n>font</span><span class=o>,</span> <span class=n>DEFAULT_WATER_MARK_FONT_SIZE</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>under</span><span class=o>.</span><span class=na>setGState</span><span class=o>(</span><span class=n>gs</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 文字水印 起始位置 (0,0)            under.setTextMatrix(CommonUtil.ZERO, CommonUtil.ZERO);  
+</span></span></span><span class=line><span class=cl><span class=c1></span>  
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=o>(</span><span class=n>StringUtils</span><span class=o>.</span><span class=na>isNotBlank</span><span class=o>(</span><span class=n>watermark</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=c1>// 高度间距，多少个文字高度  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kt>int</span> <span class=n>heightDensity</span> <span class=o>=</span> <span class=n>CommonUtil</span><span class=o>.</span><span class=na>SIX</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>                <span class=c1>// 宽度间距，多少个文字宽度  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kt>int</span> <span class=n>widthDensity</span> <span class=o>=</span> <span class=n>CommonUtil</span><span class=o>.</span><span class=na>ONE</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>                <span class=k>for</span> <span class=o>(</span><span class=kt>int</span> <span class=n>height</span> <span class=o>=</span> <span class=n>CommonUtil</span><span class=o>.</span><span class=na>TWO</span> <span class=o>*</span> <span class=n>textH</span><span class=o>;</span> <span class=n>height</span> <span class=o>&lt;</span> <span class=n>rectangle</span><span class=o>.</span><span class=na>getHeight</span><span class=o>();</span> <span class=n>height</span> <span class=o>=</span> <span class=n>height</span> <span class=o>+</span> <span class=n>textH</span> <span class=o>*</span> <span class=n>heightDensity</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                    <span class=k>for</span> <span class=o>(</span><span class=kt>int</span> <span class=n>width</span> <span class=o>=</span> <span class=n>CommonUtil</span><span class=o>.</span><span class=na>TWO</span> <span class=o>*</span> <span class=n>textW</span><span class=o>;</span> <span class=n>width</span> <span class=o>&lt;</span> <span class=n>rectangle</span><span class=o>.</span><span class=na>getWidth</span><span class=o>();</span> <span class=n>width</span> <span class=o>=</span> <span class=n>width</span> <span class=o>+</span> <span class=n>textW</span> <span class=o>*</span> <span class=n>widthDensity</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                        <span class=c1>// 显示文本  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                        <span class=n>under</span><span class=o>.</span><span class=na>showTextAligned</span><span class=o>(</span><span class=n>Element</span><span class=o>.</span><span class=na>ALIGN_CENTER</span><span class=o>,</span> <span class=n>watermark</span><span class=o>,</span> <span class=n>width</span> <span class=o>-</span> <span class=n>textW</span><span class=o>,</span> <span class=n>height</span> <span class=o>-</span> <span class=n>textH</span><span class=o>,</span> <span class=n>DEFAULT_WATER_MARK_ANGEL</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>                    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>                <span class=o>}</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  
+</span></span><span class=line><span class=cl>            <span class=n>under</span><span class=o>.</span><span class=na>endText</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>        <span class=n>stamper</span><span class=o>.</span><span class=na>close</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>outputStream</span><span class=o>.</span><span class=na>flush</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>outputStream</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>getResourceFontPath</span><span class=o>()</span> <span class=kd>throws</span> <span class=n>IOException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>final</span> <span class=n>ClassPathResource</span> <span class=n>regular</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ClassPathResource</span><span class=o>(</span><span class=s>&#34;fonts/simsun.ttc&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>regular</span><span class=o>.</span><span class=na>getURI</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34;&#34;</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=kd>class</span> <span class=nc>B64ImgReplacedElementFactory</span> <span class=kd>implements</span> <span class=n>ReplacedElementFactory</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 实现createReplacedElement 替换html中的Img标签  
+</span></span></span><span class=line><span class=cl><span class=cm>         *  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param c         上下文  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param box       盒子  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param uac       回调  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param cssWidth  css宽  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param cssHeight css高  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @return ReplacedElement  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>        <span class=kd>public</span> <span class=n>ReplacedElement</span> <span class=nf>createReplacedElement</span><span class=o>(</span><span class=n>LayoutContext</span> <span class=n>c</span><span class=o>,</span> <span class=n>BlockBox</span> <span class=n>box</span><span class=o>,</span> <span class=n>UserAgentCallback</span> <span class=n>uac</span><span class=o>,</span>  
+</span></span><span class=line><span class=cl>                                                     <span class=kt>int</span> <span class=n>cssWidth</span><span class=o>,</span> <span class=kt>int</span> <span class=n>cssHeight</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>org</span><span class=o>.</span><span class=na>w3c</span><span class=o>.</span><span class=na>dom</span><span class=o>.</span><span class=na>Element</span> <span class=n>e</span> <span class=o>=</span> <span class=n>box</span><span class=o>.</span><span class=na>getElement</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=o>(</span><span class=n>e</span> <span class=o>==</span> <span class=kc>null</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=k>return</span> <span class=kc>null</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  
+</span></span><span class=line><span class=cl>            <span class=n>String</span> <span class=n>nodeName</span> <span class=o>=</span> <span class=n>e</span><span class=o>.</span><span class=na>getNodeName</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 找到img标签  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=k>if</span> <span class=o>(</span><span class=n>nodeName</span><span class=o>.</span><span class=na>equals</span><span class=o>(</span><span class=s>&#34;img&#34;</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=n>String</span> <span class=n>attribute</span> <span class=o>=</span> <span class=n>e</span><span class=o>.</span><span class=na>getAttribute</span><span class=o>(</span><span class=s>&#34;src&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>                <span class=n>FSImage</span> <span class=n>fsImage</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>                <span class=k>try</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                    <span class=c1>// 生成itext图像  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=n>fsImage</span> <span class=o>=</span> <span class=n>buildImage</span><span class=o>(</span><span class=n>attribute</span><span class=o>,</span> <span class=n>uac</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>                <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>BadElementException</span> <span class=o>|</span> <span class=n>IOException</span> <span class=n>e1</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                    <span class=n>fsImage</span> <span class=o>=</span> <span class=kc>null</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>                <span class=o>}</span>  
+</span></span><span class=line><span class=cl>                <span class=k>if</span> <span class=o>(</span><span class=n>fsImage</span> <span class=o>!=</span> <span class=kc>null</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                    <span class=c1>// 对图像进行缩放  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                    <span class=k>if</span> <span class=o>(</span><span class=n>cssWidth</span> <span class=o>!=</span> <span class=o>-</span><span class=n>1</span> <span class=o>||</span> <span class=n>cssHeight</span> <span class=o>!=</span> <span class=o>-</span><span class=n>1</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                        <span class=n>fsImage</span><span class=o>.</span><span class=na>scale</span><span class=o>(</span><span class=n>cssWidth</span><span class=o>,</span> <span class=n>cssHeight</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>                    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>                    <span class=k>return</span> <span class=k>new</span> <span class=n>ITextImageElement</span><span class=o>(</span><span class=n>fsImage</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>                <span class=o>}</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=kc>null</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 将base64编码解码并生成itext图像  
+</span></span></span><span class=line><span class=cl><span class=cm>         *  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param srcAttr 属性  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @param uac     回调  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @return FSImage  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @throws IOException         io异常  
+</span></span></span><span class=line><span class=cl><span class=cm>         * @throws BadElementException BadElementException  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>        <span class=kd>protected</span> <span class=n>FSImage</span> <span class=nf>buildImage</span><span class=o>(</span><span class=n>String</span> <span class=n>srcAttr</span><span class=o>,</span> <span class=n>UserAgentCallback</span> <span class=n>uac</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>IOException</span><span class=o>,</span> <span class=n>BadElementException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>FSImage</span> <span class=n>fsImage</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=o>(</span><span class=n>srcAttr</span><span class=o>.</span><span class=na>startsWith</span><span class=o>(</span><span class=s>&#34;data:image/&#34;</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=n>String</span> <span class=n>b64encoded</span> <span class=o>=</span> <span class=n>srcAttr</span><span class=o>.</span><span class=na>substring</span><span class=o>(</span><span class=n>srcAttr</span><span class=o>.</span><span class=na>indexOf</span><span class=o>(</span><span class=s>&#34;base64,&#34;</span><span class=o>)</span> <span class=o>+</span> <span class=s>&#34;base64,&#34;</span><span class=o>.</span><span class=na>length</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>                <span class=c1>// 解码  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kt>byte</span><span class=o>[]</span> <span class=n>decodedBytes</span> <span class=o>=</span> <span class=n>Base64</span><span class=o>.</span><span class=na>decode</span><span class=o>(</span><span class=n>b64encoded</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>                <span class=n>fsImage</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ITextFSImage</span><span class=o>(</span><span class=n>com</span><span class=o>.</span><span class=na>lowagie</span><span class=o>.</span><span class=na>text</span><span class=o>.</span><span class=na>Image</span><span class=o>.</span><span class=na>getInstance</span><span class=o>(</span><span class=n>decodedBytes</span><span class=o>));</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>else</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=n>fsImage</span> <span class=o>=</span> <span class=n>uac</span><span class=o>.</span><span class=na>getImageResource</span><span class=o>(</span><span class=n>srcAttr</span><span class=o>).</span><span class=na>getImage</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>fsImage</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 实现reset  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>        <span class=kd>public</span> <span class=kt>void</span> <span class=nf>reset</span><span class=o>()</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=nd>@Override</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=kt>void</span> <span class=nf>remove</span><span class=o>(</span><span class=n>org</span><span class=o>.</span><span class=na>w3c</span><span class=o>.</span><span class=na>dom</span><span class=o>.</span><span class=na>Element</span> <span class=n>arg0</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=nd>@Override</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=kt>void</span> <span class=nf>setFormSubmissionListener</span><span class=o>(</span><span class=n>FormSubmissionListener</span> <span class=n>arg0</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div><a href=#itext70不可商用><h3 id=itext70不可商用><span class=hanchor arialabel=Anchor># </span>itext7.0。不可商用</h3></a><ol><li>pom文件引入</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=o>&lt;!--</span> <span class=n>freemarker</span> <span class=n>读取html模板文件</span> <span class=o>--&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;</span><span class=n>dependency</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>groupId</span><span class=o>&gt;</span><span class=n>org</span><span class=o>.</span><span class=na>freemarker</span><span class=o>&lt;/</span><span class=n>groupId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>artifactId</span><span class=o>&gt;</span><span class=n>freemarker</span><span class=o>&lt;/</span><span class=n>artifactId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>version</span><span class=o>&gt;</span><span class=n>2</span><span class=o>.</span><span class=na>3</span><span class=o>.</span><span class=na>30</span><span class=o>&lt;/</span><span class=n>version</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;/</span><span class=n>dependency</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;!--</span> <span class=n>xml</span> <span class=n>将html模板文件转换成pdf</span> <span class=o>--&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;</span><span class=n>dependency</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>groupId</span><span class=o>&gt;</span><span class=n>com</span><span class=o>.</span><span class=na>itextpdf</span><span class=o>&lt;/</span><span class=n>groupId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>artifactId</span><span class=o>&gt;</span><span class=n>html2pdf</span><span class=o>&lt;/</span><span class=n>artifactId</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>&lt;</span><span class=n>version</span><span class=o>&gt;</span><span class=n>3</span><span class=o>.</span><span class=na>0</span><span class=o>.</span><span class=na>3</span><span class=o>&lt;/</span><span class=n>version</span><span class=o>&gt;</span>  
+</span></span><span class=line><span class=cl><span class=o>&lt;/</span><span class=n>dependency</span><span class=o>&gt;</span>
+</span></span></code></pre></td></tr></table></div></div><ol><li>核心代码</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span><span class=lnt>217
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.alibaba.metrics.StringUtils</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.html2pdf.ConverterProperties</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.html2pdf.HtmlConverter</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.html2pdf.resolver.font.DefaultFontProvider</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.io.font.FontProgram</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.io.font.FontProgramFactory</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.io.font.PdfEncodings</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.colors.DeviceRgb</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.events.Event</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.events.IEventHandler</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.events.PdfDocumentEvent</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.font.PdfFont</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.font.PdfFontFactory</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.geom.Rectangle</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.pdf.DocumentProperties</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.pdf.PdfDocument</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.pdf.PdfPage</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.pdf.PdfWriter</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.pdf.canvas.PdfCanvas</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.kernel.pdf.extgstate.PdfExtGState</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.layout.Canvas</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.layout.element.Paragraph</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.layout.font.FontProvider</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.layout.property.TextAlignment</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>com.itextpdf.layout.property.VerticalAlignment</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>freemarker.template.Configuration</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>freemarker.template.Template</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>freemarker.template.TemplateException</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>lombok.extern.slf4j.Slf4j</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>org.springframework.core.io.ClassPathResource</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.servlet.http.HttpServletResponse</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>javax.swing.*</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.awt.*</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.ByteArrayOutputStream</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.IOException</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.io.StringWriter</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.net.URLEncoder</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>java.util.Locale</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl><span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm> * @author  
+</span></span></span><span class=line><span class=cl><span class=cm> * @description  
+</span></span></span><span class=line><span class=cl><span class=cm> * @date 2022/3/3 18:37  
+</span></span></span><span class=line><span class=cl><span class=cm> * @since 1.0  
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=nd>@Slf4j</span>  
+</span></span><span class=line><span class=cl><span class=kd>public</span> <span class=kd>class</span> <span class=nc>PdfTemplateUtil</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/***  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 通过模板导出pdf文件  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param data  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param templateFileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param waterMarker 水印文字内容。  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws Exception  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>    <span class=kd>public</span> <span class=kd>static</span> <span class=n>ByteArrayOutputStream</span> <span class=nf>createPDF</span><span class=o>(</span><span class=n>Object</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>templateFileName</span><span class=o>,</span> <span class=n>String</span> <span class=n>waterMarker</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>Exception</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 生成html  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>String</span> <span class=n>html</span> <span class=o>=</span> <span class=n>generateHtml</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>templateFileName</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 渲染成pdf  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=k>return</span> <span class=n>convertToPdf</span><span class=o>(</span><span class=n>html</span><span class=o>,</span> <span class=n>waterMarker</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 创建pdf，并输出到response  
+</span></span></span><span class=line><span class=cl><span class=cm>     *     * @param data  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param templateFileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param fileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param watermark 水印  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param response  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>  
+</span></span><span class=line><span class=cl>    <span class=kd>public</span> <span class=kd>static</span> <span class=kt>void</span> <span class=nf>createPDFAndFlush</span><span class=o>(</span><span class=n>Object</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>templateFileName</span><span class=o>,</span> <span class=n>String</span> <span class=n>fileName</span><span class=o>,</span> <span class=n>String</span> <span class=n>watermark</span><span class=o>,</span> <span class=n>HttpServletResponse</span> <span class=n>response</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=k>try</span> <span class=o>(</span><span class=n>ByteArrayOutputStream</span> <span class=n>outputStream</span> <span class=o>=</span> <span class=n>createPDF</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>templateFileName</span><span class=o>,</span> <span class=n>watermark</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>response</span><span class=o>.</span><span class=na>setContentType</span><span class=o>(</span><span class=s>&#34;application/x-msdownload&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 告诉浏览器，当前响应数据要求用户干预保存到文件中，以及文件名是什么 如果文件名有中文，必须URL编码  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>fileName</span> <span class=o>=</span> <span class=n>URLEncoder</span><span class=o>.</span><span class=na>encode</span><span class=o>(</span><span class=n>fileName</span><span class=o>,</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>response</span><span class=o>.</span><span class=na>setHeader</span><span class=o>(</span><span class=s>&#34;Content-Disposition&#34;</span><span class=o>,</span> <span class=s>&#34;attachment;filename=&#34;</span> <span class=o>+</span> <span class=n>fileName</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>outputStream</span><span class=o>.</span><span class=na>writeTo</span><span class=o>(</span><span class=n>response</span><span class=o>.</span><span class=na>getOutputStream</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>log</span><span class=o>.</span><span class=na>error</span><span class=o>(</span><span class=s>&#34;exportDetailData2Pdf exception:&#34;</span><span class=o>,</span> <span class=n>e</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>     * 使用freemarker生成html  
+</span></span></span><span class=line><span class=cl><span class=cm>     *     * @param data  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @param templateFileName  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @return  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws IOException  
+</span></span></span><span class=line><span class=cl><span class=cm>     * @throws TemplateException  
+</span></span></span><span class=line><span class=cl><span class=cm>     */</span>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>generateHtml</span><span class=o>(</span><span class=n>Object</span> <span class=n>data</span><span class=o>,</span> <span class=n>String</span> <span class=n>templateFileName</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>IOException</span><span class=o>,</span> <span class=n>TemplateException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=k>try</span> <span class=o>(</span><span class=n>StringWriter</span> <span class=n>writer</span> <span class=o>=</span> <span class=k>new</span> <span class=n>StringWriter</span><span class=o>())</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 创建一个FreeMarker实例, 负责管理FreeMarker模板的Configuration实例  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>Configuration</span> <span class=n>configuration</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Configuration</span><span class=o>(</span><span class=n>Configuration</span><span class=o>.</span><span class=na>DEFAULT_INCOMPATIBLE_IMPROVEMENTS</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 指定FreeMarker模板文件的位置  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>configuration</span><span class=o>.</span><span class=na>setClassForTemplateLoading</span><span class=o>(</span><span class=n>PdfTemplateUtil</span><span class=o>.</span><span class=na>class</span><span class=o>,</span> <span class=s>&#34;/templates&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 设置模板的编码格式  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>configuration</span><span class=o>.</span><span class=na>setEncoding</span><span class=o>(</span><span class=n>Locale</span><span class=o>.</span><span class=na>CHINA</span><span class=o>,</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>//设置兼容${xxx}方式取值为空的情况  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>configuration</span><span class=o>.</span><span class=na>setClassicCompatible</span><span class=o>(</span><span class=kc>true</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 获取模板文件  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>Template</span> <span class=n>template</span> <span class=o>=</span> <span class=n>configuration</span><span class=o>.</span><span class=na>getTemplate</span><span class=o>(</span><span class=n>templateFileName</span><span class=o>,</span> <span class=s>&#34;UTF-8&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 将数据输出到html中  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>template</span><span class=o>.</span><span class=na>process</span><span class=o>(</span><span class=n>data</span><span class=o>,</span> <span class=n>writer</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>writer</span><span class=o>.</span><span class=na>flush</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=k>return</span> <span class=n>writer</span><span class=o>.</span><span class=na>toString</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>ByteArrayOutputStream</span> <span class=nf>convertToPdf</span><span class=o>(</span><span class=n>String</span> <span class=n>html</span><span class=o>,</span> <span class=n>String</span> <span class=n>watermark</span><span class=o>)</span> <span class=kd>throws</span> <span class=n>IOException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=n>ByteArrayOutputStream</span> <span class=n>out</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ByteArrayOutputStream</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=n>PdfDocument</span> <span class=n>pdfDocument</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PdfDocument</span><span class=o>(</span><span class=k>new</span> <span class=n>PdfWriter</span><span class=o>(</span><span class=n>out</span><span class=o>),</span> <span class=o>(</span><span class=k>new</span> <span class=n>DocumentProperties</span><span class=o>()));</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 添加水印，  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=k>if</span> <span class=o>(</span><span class=n>StringUtils</span><span class=o>.</span><span class=na>isNotBlank</span><span class=o>(</span><span class=n>watermark</span><span class=o>))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>pdfDocument</span><span class=o>.</span><span class=na>addEventHandler</span><span class=o>(</span><span class=n>PdfDocumentEvent</span><span class=o>.</span><span class=na>INSERT_PAGE</span><span class=o>,</span> <span class=k>new</span> <span class=n>WatermarkingEventHandler</span><span class=o>(</span><span class=n>watermark</span><span class=o>));</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=n>HtmlConverter</span><span class=o>.</span><span class=na>convertToPdf</span><span class=o>(</span><span class=n>html</span><span class=o>,</span> <span class=n>pdfDocument</span><span class=o>,</span> <span class=n>config</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>out</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>ConverterProperties</span> <span class=nf>config</span><span class=o>()</span> <span class=kd>throws</span> <span class=n>IOException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 设置字体  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>FontProgram</span> <span class=n>fontProgram</span> <span class=o>=</span> <span class=n>FontProgramFactory</span><span class=o>.</span><span class=na>createFont</span><span class=o>(</span><span class=n>getResourceFontPath</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=c1>// 设置 css中 的字体样式（暂时仅支持宋体和黑体） 必须，不然中文不显示  
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=n>FontProvider</span> <span class=n>dfp</span> <span class=o>=</span> <span class=k>new</span> <span class=n>DefaultFontProvider</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>dfp</span><span class=o>.</span><span class=na>addFont</span><span class=o>(</span><span class=n>fontProgram</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=n>ConverterProperties</span> <span class=n>converterProperties</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ConverterProperties</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=n>converterProperties</span><span class=o>.</span><span class=na>setFontProvider</span><span class=o>(</span><span class=n>dfp</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>converterProperties</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>private</span> <span class=kd>static</span> <span class=n>String</span> <span class=nf>getResourceFontPath</span><span class=o>()</span> <span class=kd>throws</span> <span class=n>IOException</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>final</span> <span class=n>ClassPathResource</span> <span class=n>regular</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ClassPathResource</span><span class=o>(</span><span class=s>&#34;fonts/simsun.ttc&#34;</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>        <span class=k>return</span> <span class=n>regular</span><span class=o>.</span><span class=na>getURI</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34;,1&#34;</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>    <span class=kd>protected</span> <span class=kd>static</span> <span class=kd>class</span> <span class=nc>WatermarkingEventHandler</span> <span class=kd>implements</span> <span class=n>IEventHandler</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 水印数据  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kd>final</span> <span class=n>String</span> <span class=n>waterMark</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 水印旋转角度  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kd>final</span> <span class=kd>static</span> <span class=kt>float</span> <span class=n>DEFAULT_WATER_MARK_ANGEL</span> <span class=o>=</span> <span class=n>0</span><span class=o>.</span><span class=na>45f</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 水印文字透明度  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kd>final</span> <span class=kd>static</span> <span class=kt>float</span> <span class=n>DEFAULT_OPACITY</span> <span class=o>=</span> <span class=n>0</span><span class=o>.</span><span class=na>1f</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=cm>/**  
+</span></span></span><span class=line><span class=cl><span class=cm>         * 水印字体大小  
+</span></span></span><span class=line><span class=cl><span class=cm>         */</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>private</span> <span class=kd>final</span> <span class=kd>static</span> <span class=kt>int</span> <span class=n>DEFAULT_WATER_MARK_FONT_SIZE</span> <span class=o>=</span> <span class=n>12</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=nf>WatermarkingEventHandler</span><span class=o>(</span><span class=n>String</span> <span class=n>waterMark</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=k>this</span><span class=o>.</span><span class=na>waterMark</span> <span class=o>=</span> <span class=n>waterMark</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>        <span class=nd>@Override</span>  
+</span></span><span class=line><span class=cl>        <span class=kd>public</span> <span class=kt>void</span> <span class=nf>handleEvent</span><span class=o>(</span><span class=n>Event</span> <span class=n>event</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>            <span class=n>PdfDocumentEvent</span> <span class=n>docEvent</span> <span class=o>=</span> <span class=o>(</span><span class=n>PdfDocumentEvent</span><span class=o>)</span> <span class=n>event</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>            <span class=n>PdfDocument</span> <span class=n>pdfDoc</span> <span class=o>=</span> <span class=n>docEvent</span><span class=o>.</span><span class=na>getDocument</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=n>PdfPage</span> <span class=n>page</span> <span class=o>=</span> <span class=n>docEvent</span><span class=o>.</span><span class=na>getPage</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=n>PdfFont</span> <span class=n>font</span> <span class=o>=</span> <span class=kc>null</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>            <span class=k>try</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=n>font</span> <span class=o>=</span> <span class=n>PdfFontFactory</span><span class=o>.</span><span class=na>createFont</span><span class=o>(</span><span class=n>getResourceFontPath</span><span class=o>(),</span> <span class=n>PdfEncodings</span><span class=o>.</span><span class=na>IDENTITY_H</span><span class=o>,</span> <span class=kc>true</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span> <span class=k>catch</span> <span class=o>(</span><span class=n>Exception</span> <span class=n>e</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=k>throw</span> <span class=k>new</span> <span class=n>RuntimeException</span><span class=o>(</span><span class=n>e</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=n>JLabel</span> <span class=n>label</span> <span class=o>=</span> <span class=k>new</span> <span class=n>JLabel</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=n>label</span><span class=o>.</span><span class=na>setText</span><span class=o>(</span><span class=n>waterMark</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>FontMetrics</span> <span class=n>metrics</span> <span class=o>=</span> <span class=n>label</span><span class=o>.</span><span class=na>getFontMetrics</span><span class=o>(</span><span class=n>label</span><span class=o>.</span><span class=na>getFont</span><span class=o>());</span>  
+</span></span><span class=line><span class=cl>            <span class=kt>int</span> <span class=n>textH</span> <span class=o>=</span> <span class=n>metrics</span><span class=o>.</span><span class=na>getHeight</span><span class=o>();</span> <span class=c1>// 字符串的高, 只和字体有关  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=kt>int</span> <span class=n>textW</span> <span class=o>=</span> <span class=n>metrics</span><span class=o>.</span><span class=na>stringWidth</span><span class=o>(</span><span class=n>label</span><span class=o>.</span><span class=na>getText</span><span class=o>());</span> <span class=c1>// 字符串的宽  
+</span></span></span><span class=line><span class=cl><span class=c1></span>  
+</span></span><span class=line><span class=cl>            <span class=n>PdfCanvas</span> <span class=n>pdfCanvas</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PdfCanvas</span><span class=o>(</span><span class=n>page</span><span class=o>.</span><span class=na>newContentStreamBefore</span><span class=o>(),</span> <span class=n>page</span><span class=o>.</span><span class=na>getResources</span><span class=o>(),</span> <span class=n>pdfDoc</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 保存配置，避免设置的透明度全局生效  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>pdfCanvas</span><span class=o>.</span><span class=na>saveState</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=c1>// 设置透明度  
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=n>PdfExtGState</span> <span class=n>gs</span> <span class=o>=</span> <span class=k>new</span> <span class=n>PdfExtGState</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>            <span class=n>gs</span><span class=o>.</span><span class=na>setFillOpacity</span><span class=o>(</span><span class=n>DEFAULT_OPACITY</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>            <span class=n>pdfCanvas</span><span class=o>.</span><span class=na>setExtGState</span><span class=o>(</span><span class=n>gs</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=k>try</span> <span class=o>(</span><span class=n>Canvas</span> <span class=n>canvas</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Canvas</span><span class=o>(</span><span class=n>pdfCanvas</span><span class=o>,</span> <span class=n>page</span><span class=o>.</span><span class=na>getPageSize</span><span class=o>()))</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                <span class=n>canvas</span><span class=o>.</span><span class=na>setFontSize</span><span class=o>(</span><span class=n>DEFAULT_WATER_MARK_FONT_SIZE</span><span class=o>)</span>  
+</span></span><span class=line><span class=cl>                        <span class=o>.</span><span class=na>setFont</span><span class=o>(</span><span class=n>font</span><span class=o>)</span>  
+</span></span><span class=line><span class=cl>                        <span class=o>.</span><span class=na>setFontColor</span><span class=o>(</span><span class=n>DeviceRgb</span><span class=o>.</span><span class=na>makeDarker</span><span class=o>(</span><span class=k>new</span> <span class=n>DeviceRgb</span><span class=o>(</span><span class=n>192</span><span class=o>,</span> <span class=n>192</span><span class=o>,</span> <span class=n>192</span><span class=o>)));</span>  
+</span></span><span class=line><span class=cl>                <span class=n>Rectangle</span> <span class=n>pageRect</span> <span class=o>=</span> <span class=n>page</span><span class=o>.</span><span class=na>getPageSizeWithRotation</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>                <span class=c1>// 高度间距，多少个文字高度  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kt>int</span> <span class=n>heightDensity</span> <span class=o>=</span> <span class=n>6</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>                <span class=c1>// 宽度间距，多少个文字宽度  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                <span class=kt>int</span> <span class=n>widthDensity</span> <span class=o>=</span> <span class=n>1</span><span class=o>;</span>  
+</span></span><span class=line><span class=cl>                <span class=k>for</span> <span class=o>(</span><span class=kt>int</span> <span class=n>height</span> <span class=o>=</span> <span class=n>2</span> <span class=o>*</span> <span class=n>textH</span><span class=o>;</span> <span class=n>height</span> <span class=o>&lt;</span> <span class=n>pageRect</span><span class=o>.</span><span class=na>getHeight</span><span class=o>();</span> <span class=n>height</span> <span class=o>=</span> <span class=n>height</span> <span class=o>+</span> <span class=n>textH</span> <span class=o>*</span> <span class=n>heightDensity</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                    <span class=k>for</span> <span class=o>(</span><span class=kt>int</span> <span class=n>width</span> <span class=o>=</span> <span class=n>2</span> <span class=o>*</span> <span class=n>textW</span><span class=o>;</span> <span class=n>width</span> <span class=o>&lt;</span> <span class=n>pageRect</span><span class=o>.</span><span class=na>getWidth</span><span class=o>();</span> <span class=n>width</span> <span class=o>=</span> <span class=n>width</span> <span class=o>+</span> <span class=n>textW</span> <span class=o>*</span> <span class=n>widthDensity</span><span class=o>)</span> <span class=o>{</span>  
+</span></span><span class=line><span class=cl>                        <span class=c1>// 显示文本  
+</span></span></span><span class=line><span class=cl><span class=c1></span>                        <span class=n>canvas</span><span class=o>.</span><span class=na>showTextAligned</span><span class=o>(</span><span class=k>new</span> <span class=n>Paragraph</span><span class=o>(</span><span class=n>waterMark</span><span class=o>),</span> <span class=n>width</span> <span class=o>-</span> <span class=n>textW</span><span class=o>,</span> <span class=n>height</span> <span class=o>-</span> <span class=n>textH</span><span class=o>,</span>  
+</span></span><span class=line><span class=cl>                                <span class=n>pdfDoc</span><span class=o>.</span><span class=na>getPageNumber</span><span class=o>(</span><span class=n>page</span><span class=o>),</span> <span class=n>TextAlignment</span><span class=o>.</span><span class=na>LEFT</span><span class=o>,</span> <span class=n>VerticalAlignment</span><span class=o>.</span><span class=na>MIDDLE</span><span class=o>,</span> <span class=n>DEFAULT_WATER_MARK_ANGEL</span><span class=o>);</span>  
+</span></span><span class=line><span class=cl>                    <span class=o>}</span>  
+</span></span><span class=line><span class=cl>                <span class=o>}</span>  
+</span></span><span class=line><span class=cl>            <span class=o>}</span>  
+</span></span><span class=line><span class=cl>  
+</span></span><span class=line><span class=cl>            <span class=n>pdfCanvas</span><span class=o>.</span><span class=na>restoreState</span><span class=o>();</span>  
+</span></span><span class=line><span class=cl>        <span class=o>}</span>  
+</span></span><span class=line><span class=cl>    <span class=o>}</span>  
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></td></tr></table></div></div></article><hr><div class=page-end id=footer><div class=backlinks-container><h3>反向链接</h3><ul class=backlinks><li><a href=/-java/ data-ctx=html转pdf data-src=/-java class=internal-link>§ java</a></li></ul></div><div><script src=https://cdn.jsdelivr.net/npm/d3@6.7.0/dist/d3.min.js integrity="sha256-+7jaYCp29O1JusNWHaYtgUn6EhuP0VaFuswhNV06MyI=" crossorigin=anonymous></script><h3>内部链接关系图</h3><div id=graph-container></div><style>:root{--g-node:var(--secondary);--g-node-active:var(--primary);--g-node-inactive:var(--visited);--g-node-none:var(--none);--g-link:var(--outlinegray);--g-link-active:#5a7282}</style><script src=https://clickear.github.io/js/graph.e6e0e3d303bfd4c2be10b6b46979c3fe.js></script></div></div><hr><script src=https://giscus.app/client.js data-repo=clickear/knowledge-garden data-repo-id=R_kgDOHT-NGQ data-category=主发布站的评论系统 data-category-id=DIC_kwDOHT-NGc4CQ7hg data-mapping=title data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=preferred_color_scheme data-lang=zh-CN crossorigin=anonymous async></script></div></body></html>
