@@ -115,10 +115,10 @@ The cards folder is one of my favorite places because it has umami.</description
 The beast-like Evernote Web Clipper approaches Gandalf trying to infect and corrupt your PKM sanctuary with hordes of low-value articles you&amp;rsquo;ll never read and that will drown your own thinking a pit of orc-like chaos.</description></item><item><title>About Spaces</title><link>https://clickear.github.io/About-Spaces/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/About-Spaces/</guid><description>up:: [[ACCESS 笔记组织法]]
 我的理解 其实就是[[PARA]]，SPACES以项目action为目标，进行信息管理。但多了一个[[MOC]]，把信息串起来。我直接将其改成PARA。moc先直接放到对应文件夹里面。
 与Source相比，Spaces就像社会人，高目的性，一切以项目、闭环、完成为目标。而Source就像学生，低目的性，重在持续积累，分类，持续精进。
-About Spaces Spaces are one of the most important parts of ACCESS: Whenever you have something big in your life, deploy a space and set up MAPS (MOCs, Areas, Projects, Support notes).</description></item><item><title>access method</title><link>https://clickear.github.io/access-method/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/access-method/</guid><description> [!TIP] 技巧💡
+About Spaces Spaces are one of the most important parts of ACCESS: Whenever you have something big in your life, deploy a space and set up MAPS (MOCs, Areas, Projects, Support notes).</description></item><item><title>access method</title><link>https://clickear.github.io/access-method/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/access-method/</guid><description>[!TIP] 技巧💡
 access method ,是我们对数据库数据进行读或者写的方式。 数据结构无处不在。
 数据组织：如何将这些数据结构合理地放入 memory/pages 中，以及为了支持更高效的访问，应当存储哪些信息。 并发性：如何支持数据的并发访问。
-在DBMS中，最重要的就是 [[哈希表]] 和[[trees]]</description></item><item><title>AOT</title><link>https://clickear.github.io/AOT/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/AOT/</guid><description>::我的理解 提前编译，本质目的是为了能在使用之前，提前编译成机器码。
+在DBMS中，最重要的就是 [[哈希表]] 和[[trees]] 常用的数据存储，我们一般分为2类。</description></item><item><title>AOT</title><link>https://clickear.github.io/AOT/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/AOT/</guid><description>::我的理解 提前编译，本质目的是为了能在使用之前，提前编译成机器码。
 问题的矛盾点在于
 动态生成字节码怎么处理？ 所有代码编译成机器码，性能一定比热点代码编译性能高吗？
 #todo/某天 参考资料 Java中有类似于NGen的工具（AOT编译器）吗？ - 知乎</description></item><item><title>AQS</title><link>https://clickear.github.io/AQS/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/AQS/</guid><description>[!TIP] 技巧💡
@@ -232,9 +232,9 @@ log-structured 只存储日志记录。不是存具体的数据，如果需要�
 增删改，都需要新增一条日志记录。不用删除具体的数据，会变得很快。因为是[[顺序写]]的原因。 有得有失，因为每次要查询的时候，都得重新计算值。所以查询慢。
 优化方向:
 压缩日志，比如有2个日志，一个是update a = 5, 后面是 update a = 6; 则可以直接删除 a=5那条记录。 分级压缩, rosedb 和leveldb 的主要方法 [[LSM树]]</description></item><item><title>LSM树</title><link>https://clickear.github.io/LSM%E6%A0%91/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/LSM%E6%A0%91/</guid><description>[!TIP] Log-structured Merge tree💡
-SSD，没有寻道时间，减少擦除损坏
-LSM树，在 1（读写性能）的性能不是特别好。主要是通过compaction来操作整理LSM树的结构。
-Compaction可以认为是，SMO的过程。在这个过程中，会称为性能瓶颈。</description></item><item><title>MDL</title><link>https://clickear.github.io/MDL/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/MDL/</guid><description>[!INFO] MDL（metadata lock）
+LSM-Tree 并不是一种严格的树结构，而是一种内存+磁盘的多层存储结构。HBase、LevelDB、RocksDB这些 NoSQL 存储都使用了 LSM-Tree.核心思想是利用磁盘顺序写性能远高于随机写
+概念:
+**读放大。**读取数据时实际读取的数据量大于真正的数据量。例如在不同层次的 Table 中查找。 **写放大。**写入数据时实际写入的数据量大于真正的数据量。例如写入时触发 Compact，导致写入大量数据。 **空间放大。**数据占用的磁盘空间比真正的数据大小要大很多。即冗余存储。 LSM树，在 1（读写性能）的性能不是特别好。主要是通过compaction来操作整理LSM树的结构。</description></item><item><title>MDL</title><link>https://clickear.github.io/MDL/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/MDL/</guid><description>[!INFO] MDL（metadata lock）
 1.1 当对一个表做增删改查的时候，该表会被加MDL读锁。（DML操作需要MDL读锁)
 1.2 当对表做结构变更的时候，加MDL写锁。(DDL操作需要MDL写锁)
 1.3 读读不互斥，读写，写写互斥。
