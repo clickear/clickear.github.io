@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2231 on</title><link>https://clickear.github.io/tags/2231/</link><description>Recent content in 2231 on</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://clickear.github.io/tags/2231/index.xml" rel="self" type="application/rss+xml"/><item><title>jrebel</title><link>https://clickear.github.io/jrebel/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/jrebel/</guid><description>简介 使用 Jrebel，实现热部署 | 小决的专栏
-安装 安装可参考(简单来说，就是在idea插件中，搜索进行安装):
-IDEA JRebel插件热部署
-激活 最新版激活，会碰到无法连接的问题。可能问题:
-https服务不支持，不确定是自身代理问题，还是jrebel插件问题 443端口不可用 三方服务，暂无法激活，不确定是不是被拉入黑名单了。 三方激活服务 http://jrebel-license.</description></item></channel></rss>
