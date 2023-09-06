@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html><head><title>LSM树</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="LSM树"/><meta property="og:description" content="Log-structured Merge tree💡 LSM-Tree 并不是一种严格的树结构，而是一种内存+磁盘的多层存储结构。HBase、LevelDB、RocksDB这些 NoSQL 存储都使用了 LSM-Tree.核心思想是利用磁盘顺序写性能远高于随机写 概念: **读放大。**读取数据时实际读取的数据量大于真正的数据量。例如在不同层次的 Table 中查找。 **写放大。**写入数据时实际写入的数据量大于真正的数据量。例如写入时触发 Compact，导致写入大量数据。 **空间放大。**数据占用的磁盘空间比真正的数据大小要大很多。即冗余存储。 LSM树，在 1（读写性能）的性能不是特别好。主要是通过compaction来操作整理LSM树的结构。 Compaction可以认为是，SMO的过程。在这个过程中，会称为性能瓶颈。 LSM的组成部分 § 2."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="Log-structured Merge tree💡 LSM-Tree 并不是一种严格的树结构，而是一种内存+磁盘的多层存储结构。HBase、LevelDB、RocksDB这些 NoSQL 存储都使用了 LSM-Tree.核心思想是利用磁盘顺序写性能远高于随机写 概念: **读放大。**读取数据时实际读取的数据量大于真正的数据量。例如在不同层次的 Table 中查找。 **写放大。**写入数据时实际写入的数据量大于真正的数据量。例如写入时触发 Compact，导致写入大量数据。 **空间放大。**数据占用的磁盘空间比真正的数据大小要大很多。即冗余存储。 LSM树，在 1（读写性能）的性能不是特别好。主要是通过compaction来操作整理LSM树的结构。 Compaction可以认为是，SMO的过程。在这个过程中，会称为性能瓶颈。 LSM的组成部分 § 2."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="LSM树"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-1"><a href="#lsm的组成部分" data-for="lsm的组成部分">LSM的组成部分</a></li><li class="depth-1"><a href="#3-lsm-tree读写数据" data-for="3-lsm-tree读写数据">3. LSM-Tree读写数据</a></li><li class="depth-1"><a href="#lsm-tree的compact策略lsm的重难点" data-for="lsm-tree的compact策略lsm的重难点"> LSM-Tree的Compact策略（LSM的重难点）</a></li><li class="depth-1"><a href="#lsm的优化" data-for="lsm的优化">LSM的优化</a></li><li class="depth-0"><a href="#对比" data-for="对比">对比</a></li><li class="depth-0"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">LSM树</h1><p class="content-meta">Sep 06, 2023, 11 min read</p></div></div><article class="popover-hint"><blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>Log-structured Merge tree💡 <br/>
+LSM-Tree 并不是一种严格的树结构，而是一种<strong>内存+磁盘的多层存储结构</strong>。HBase、LevelDB、RocksDB这些 NoSQL 存储都使用了 LSM-Tree.核心思想是利用<strong>磁盘顺序写性能远高于随机写</strong></p></div>
+                  
+                </div>
+</blockquote>
+<p>概念:</p>
+<ul>
+<li>**读放大。**读取数据时实际读取的数据量大于真正的数据量。例如在不同层次的 Table 中查找。</li>
+<li>**写放大。**写入数据时实际写入的数据量大于真正的数据量。例如写入时触发 Compact，导致写入大量数据。</li>
+<li>**空间放大。**数据占用的磁盘空间比真正的数据大小要大很多。即冗余存储。</li>
+</ul>
+<p>LSM树，在 1（读写性能）的性能不是特别好。主要是通过compaction来操作整理LSM树的结构。</p>
+<p><img src="http://image.clickear.top/20230613003409.png" alt="image.png"/></p>
+<p>Compaction可以认为是，SMO的过程。在这个过程中，会称为性能瓶颈。</p>
+<p><img src="http://image.clickear.top/20230830170756.png" alt/></p>
+<h3 id="lsm的组成部分">LSM的组成部分<a aria-hidden="true" tabindex="-1" href="#lsm的组成部分" class="internal"> §</a></h3>
+<h4 id="21-memtable">2.1 Memtable<a aria-hidden="true" tabindex="-1" href="#21-memtable" class="internal"> §</a></h4>
+<p>MemTable 是 LSM-Tree 在内存中的数据结构，只用于保存最新的数据，按照 Key 有序地组织这些数据。<br/>
+LSM-Tree 没有规定用怎样的数据结构实现 MemTable，例如 HBase 使用跳表来保证内存中 Key 的有序性。<br/>
+存在内存中的数据会因为断电丢失，所以我们通常使用 WAL，即预写日志的方式来保证数据的可靠。</p>
+<blockquote>
+<p>WAL：预写日志，即事务的所有修改在提交之前要先写入 log 文件中</p>
+</blockquote>
+<h4 id="22-immutable-memtable">2.2 Immutable MemTable<a aria-hidden="true" tabindex="-1" href="#22-immutable-memtable" class="internal"> §</a></h4>
+<p>MemTable 达到一定大小后，会转化为 Immutable MemTable。Immutable MemTable 是将 MemTable 转为磁盘上的 SSTable 的一种中间状态。<br/>
+转化过程中写操作由新的 MemTable 处理，过程中不阻塞数据更新操作。</p>
+<h4 id="23-sstable">2.3 SSTable<a aria-hidden="true" tabindex="-1" href="#23-sstable" class="internal"> §</a></h4>
+<p>SSTable 是<strong>有序键值对集合</strong>，是 LSM 树在磁盘中的数据结构。它是一种持久化、有序且不可变的键值村存储结构</p>
+<p>SSTable 内部包含一系列可配置大小的 Block 块。这些 Block 的 index 会被存储在 SSTable 的尾部，用于帮助快速查找特定的 Block。当一个 SSTable 被打开时，index 表会被加载到内存，然后根据 key 在内存 index 中进行一个二分查找，查到该 key 对应的磁盘的 offset 后，去磁盘把响应的块数据读取出来。<br/>
+<img src="http://image.clickear.top/20230830171706.png" alt="image.png"/></p>
+<p>当然，如果内存足够大，可以直接利用 MMAP 的技术把 SSTable 映射到内存中，提供更快的查找。</p>
+<p>MemTable 达到一定大小会被 flush 到硬盘中变成 SSTable。在不同的 SSTable 中可能存在相同的 Key 记录。但这样会带来一些问题：</p>
+<ul>
+<li><strong>冗余存储</strong>。对于某个 Key，除了最新的记录，其他记录都是冗余无用的。所以我们需要进行 Compact 操作（合并多个 SSTable），来清除冗余的记录。</li>
+<li>读取时需要从最新的 SSTable 出发进行查询，最坏情况下药查询完所有的 SSTable。可以通过索引或布隆过滤器来优化查找速度。</li>
+</ul>
+<h3 id="3-lsm-tree读写数据">3. LSM-Tree读写数据<a aria-hidden="true" tabindex="-1" href="#3-lsm-tree读写数据" class="internal"> §</a></h3>
+<h4 id="31-lsm-tree写数据流程">3.1 LSM-Tree写数据流程<a aria-hidden="true" tabindex="-1" href="#31-lsm-tree写数据流程" class="internal"> §</a></h4>
+<p>LSM 树中，我们按照下面的步骤处理写数据请求。</p>
+<ol>
+<li>当收到写请求，先将数据记录在 WAL Log 中，用作故障恢复。</li>
+<li>将数据写入内存的 MemTable 中。为了有序，我们往往用跳表或红黑树实现。
+<ul>
+<li>如果是删除，则做墓碑标记</li>
+<li>如果是更新，则新记录一条数据。</li>
+</ul>
+</li>
+<li>MemTable 达到一定大小后，在内存中冻结，成为不可变的 ImmuTable MemTable。同时也要生成新的 MemTable 来提供服务。</li>
+<li>内存中不可变的 MemTable 被 dump 到硬盘上的 SSTable 中，这也称为 **Minor Compaction。**注意 L0 层的 SSTable 是没有合并的，所以 key 在多个 SSTable 中往往会重叠、冗余。</li>
+<li>当每层 SSTable 超过一定大小，就会周期性的进行合并，这也称为 <strong>Major Compaction</strong>。这个阶段回清除掉荣誉的数据，防止浪费空间。由于 SSTable 都是有序的，可以使用归并排序进行高效合并。</li>
+</ol>
+<h4 id="32-lsm-tree读数据流程">3.2 LSM-Tree读数据流程<a aria-hidden="true" tabindex="-1" href="#32-lsm-tree读数据流程" class="internal"> §</a></h4>
+<ol>
+<li>当收到读请求，现在内存中查询，查询到就返回。</li>
+<li>如果没有查询到，由内存到磁盘，在各级 SSTable 中依次下沉，直到得到结果。</li>
+</ol>
+<h3 id="lsm-tree的compact策略lsm的重难点"> LSM-Tree的Compact策略（LSM的重难点）<a aria-hidden="true" tabindex="-1" href="#lsm-tree的compact策略lsm的重难点" class="internal"> §</a></h3>
+<p>控制 Compaction 的顺序和时间。常见的有 size-tiered 和 leveled compaction。LevelDB 便是支持后者而得名。前者比较简单粗暴，后者性能更好，也因此更为常见。leveled 策略相比 size-tiered 策略来说，每层内的 Key 是<strong>有序、不重复</strong>的。这样就很好地控制了冗余 Key 的量</p>
+<h4 id="size-tiered限制每层数量">size-tiered（限制每层数量）<a aria-hidden="true" tabindex="-1" href="#size-tiered限制每层数量" class="internal"> §</a></h4>
+<p><strong>size-tiered策略，保证每层中每个 SSTable 的大小相近，同时限制每一层 SSTable 的数量</strong><br/>
+每层限制有 N 个 SSTable，每层数量达到 N 后，触发 Compact 操作来合并这些 SSTable，放入下一层成为更大的 SSTable<br/>
+当层数越来越大，单个 SSTable 的大小也会越来越大。该策略会导致空间放大比较严重。对每一层的 SSTable 来说，每个 key 的记录也可能存在多份。只有该层执行 Compact 操作才会消除这些冗余记录<br/>
+<img src="http://image.clickear.top/20230830172220.png" alt="image.png"/></p>
+<h4 id="leveled策略限制每层总大小">leveled策略(限制每层总大小)<a aria-hidden="true" tabindex="-1" href="#leveled策略限制每层总大小" class="internal"> §</a></h4>
+<p><strong>leveled 策略限制每一层总文件的大小。</strong><br/>
+** leveld 同样将每一层划分为大小相近的 SSTable。并保证在一层内全局有序。**这意味着与一个 Key 在每一层至多只有一条记录，不存在冗余记录<br/>
+<img src="http://image.clickear.top/20230830172505.png" alt="image.png"/></p>
+<h3 id="lsm的优化">LSM的优化<a aria-hidden="true" tabindex="-1" href="#lsm的优化" class="internal"> §</a></h3>
+<ul>
+<li><strong>压缩</strong>.例如，<strong>前缀压缩</strong>等。 SSTable可以进行压缩，而且不是压缩整个 SSTable。而是根据局部性原理将数据分组。每个分组分别压缩。这样读取数据的时候我们就不需要解压缩整个文件，而是解压缩部分 Group 即可读取。</li>
+<li><strong>缓存</strong> SSTable 除了进行 Compaction，其他情况下是不可变的。所以我们可以将一次扫描到的 Block 进行缓存，提高下一次检索的效率。</li>
+<li><strong>索引/布隆过滤器</strong> 正常情况下，一次读操作需要读取所有 SSTable，再将结果合并后返回。但是对某些 Key 而言，有些 SSTable 根本不包含对应数据。所以我们可以为每个 SSTable 添加布隆过滤器。来判断当前 SSTable 有没有我们需要的 Key。</li>
+</ul>
+<ul>
+<li><strong>合并</strong> 合并本身肯定可以优化数据的组织情况，提高查询效率。但是也要注意查询是非常消耗 CPU 和磁盘 IO 的操作。一般我们选在业务量不大的凌晨等情况进行合并。</li>
+</ul>
+<h2 id="对比">对比<a aria-hidden="true" tabindex="-1" href="#对比" class="internal"> §</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>存储引擎</th><th>B-Tree</th><th>LSM-Tree</th><th>备注</th></tr></thead><tbody><tr><td>优势</td><td>读取更快</td><td>写入更快</td><td></td></tr><tr><td>写放大</td><td>1. 数据和 WAL  <br/>2. 更改数据时多次覆盖整个 Page</td><td>1. 数据和 WAL  <br/>2. Compaction</td><td>SSD 不能过多擦除。因此 SSD 内部的固件中也多用日志结构来减少随机小写。</td></tr><tr><td>写吞吐</td><td>相对较低：  <br/>1. 大量随机写。</td><td>相对较高：  <br/>1. 较低的写放大（取决于数据和配置）  <br/>2. 顺序写入。  <br/>3. 更为紧凑。</td><td></td></tr><tr><td>压缩率</td><td>1. 存在较多内部碎片。</td><td>1. 更加紧凑，没有内部碎片。  <br/>2. 压缩潜力更大（共享前缀）。</td><td>但紧缩不及时会造成 LSM-Tree 存在很多垃圾</td></tr><tr><td>后台流量</td><td>1. 更稳定可预测，不会受后台 compaction 突发流量影响。</td><td>1. 写吞吐过高，compaction 跟不上，会进一步加重读放大。  <br/>2. 由于外存总带宽有限，compaction 会影响读写吞吐。  <br/>3. 随着数据越来越多，compaction 对正常写影响越来越大。</td><td>RocksDB 写入太过快会引起 write stall，即限制写入，以期尽快 compaction 将数据下沉。</td></tr><tr><td>存储放大</td><td>1. 有些 Page 没有用满</td><td>1. 同一个 Key 存多遍</td><td></td></tr><tr><td>并发控制</td><td>1. 同一个 Key 只存在一个地方  <br/>2. 树结构容易加范围锁。</td><td>同一个 Key 会存多遍，一般使用 MVCC 进行控制。</td><td></td></tr></tbody></table>
+<h2 id="资料">资料<a aria-hidden="true" tabindex="-1" href="#资料" class="internal"> §</a></h2>
+<p><a href="https://www.cnblogs.com/WangXianSCU/p/15939129.html" class="external">简述LSM-Tree - pedro7 - 博客园</a><br/>
+<a href="https://www.qtmuniao.com/2022/04/16/ddia-reading-chapter3-part1/" class="external">DDIA 读书笔记（三）：B-Tree 和 LSM-Tree | 木鸟杂记</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./Log-structured" class="internal">Log-structured</a></li><li><a href="./Trees" class="internal">Trees</a></li><li><a href="./access-method" class="internal">access method</a></li><li><a href="./cmu15445" class="internal">cmu15445</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

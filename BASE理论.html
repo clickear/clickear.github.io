@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html><head><title>BASE理论</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="BASE理论"/><meta property="og:description" content="追求可用性 § 常青笔记 § BASE 是对 CAP 中一致性和可用性权衡的结果。更强调追求可用性。核心思想是，即使无法做到强一致性，但每个系统都可以根据自身的业务 特点，采用适当的方式来使系统达到**最终一致性** 基本可用，即指可以允许损失部分可用性。常见的服务质量下降有两种类型。响应时间的损失和功能的损失(服务降级)。又可以从其他角度分为流量削峰、延迟响应、体验降级、过载保护。 ACID 理论是传统数据库常用的设计理念，追求强一致性模型。BASE 理论支持的是大型分布式系统，通过牺牲强一致性获得高可用性。BASE 理论在很大程度上，解决了事务型系统在性能、容错、可用性等方面痛点。BASE 理论在 NoSQL 中应用广泛，是 NoSQL 系统设计的事实上的理论支撑。 概念 § BASE 理论是 CAP 理论中的 AP 的延伸，是对互联网大规模分布式系统的实践总结，强调可用性。 它的核心就是基本可用（Basically Available）和最终一致性（Eventually consistent）。也有人会提到软状态（Soft state），在我看来，软状态描述的是实现服务可用性的时候系统数据的一种过渡状态，也就是说不同节点间，数据副本存在短暂的不一致。你只需要知道软状态是一种过渡状态就可以了。 BASE 是 Basically Available（基本可用）、Soft state（软状态，即可以是中间态,不影响系统的过渡态）和 Eventually consistent（最终一致性）三个短语的简写，BASE 是对 CAP 中一致性和可用性权衡的结果，其来源于对大 规模互联网系统分布式实践的结论，是基于 CAP 定理逐步演化而来的。 BASE 理论的核心思想是：即使无法做到强一致性，但每个系统都可以根据自身的业务 特点，采用适当的方式来使系统达到最终一致性。 基本可用."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="追求可用性 § 常青笔记 § BASE 是对 CAP 中一致性和可用性权衡的结果。更强调追求可用性。核心思想是，即使无法做到强一致性，但每个系统都可以根据自身的业务 特点，采用适当的方式来使系统达到**最终一致性** 基本可用，即指可以允许损失部分可用性。常见的服务质量下降有两种类型。响应时间的损失和功能的损失(服务降级)。又可以从其他角度分为流量削峰、延迟响应、体验降级、过载保护。 ACID 理论是传统数据库常用的设计理念，追求强一致性模型。BASE 理论支持的是大型分布式系统，通过牺牲强一致性获得高可用性。BASE 理论在很大程度上，解决了事务型系统在性能、容错、可用性等方面痛点。BASE 理论在 NoSQL 中应用广泛，是 NoSQL 系统设计的事实上的理论支撑。 概念 § BASE 理论是 CAP 理论中的 AP 的延伸，是对互联网大规模分布式系统的实践总结，强调可用性。 它的核心就是基本可用（Basically Available）和最终一致性（Eventually consistent）。也有人会提到软状态（Soft state），在我看来，软状态描述的是实现服务可用性的时候系统数据的一种过渡状态，也就是说不同节点间，数据副本存在短暂的不一致。你只需要知道软状态是一种过渡状态就可以了。 BASE 是 Basically Available（基本可用）、Soft state（软状态，即可以是中间态,不影响系统的过渡态）和 Eventually consistent（最终一致性）三个短语的简写，BASE 是对 CAP 中一致性和可用性权衡的结果，其来源于对大 规模互联网系统分布式实践的结论，是基于 CAP 定理逐步演化而来的。 BASE 理论的核心思想是：即使无法做到强一致性，但每个系统都可以根据自身的业务 特点，采用适当的方式来使系统达到最终一致性。 基本可用."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="BASE理论"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#追求可用性" data-for="追求可用性">追求可用性</a></li><li class="depth-0"><a href="#常青笔记" data-for="常青笔记">常青笔记</a></li><li class="depth-0"><a href="#概念" data-for="概念">概念</a></li><li class="depth-1"><a href="#一致性的数据以什么为准" data-for="一致性的数据以什么为准">一致性的数据，以什么为准？</a></li><li class="depth-1"><a href="#一致性的具体方式" data-for="一致性的具体方式">一致性的具体方式</a></li><li class="depth-1"><a href="#如何应用" data-for="如何应用">如何应用？</a></li><li class="depth-1"><a href="#解决方案" data-for="解决方案">解决方案</a></li><li class="depth-2"><a href="#本地消息表基于-mq-的可靠消息投递方案最常用最终一致性" data-for="本地消息表基于-mq-的可靠消息投递方案最常用最终一致性">[[本地消息表]]⭐ (基于 MQ 的可靠消息投递方案，最常用，最终一致性)</a></li><li class="depth-2"><a href="#最大努力通知适用于微信交易通知等" data-for="最大努力通知适用于微信交易通知等">[[最大努力通知]]（适用于微信交易通知等）</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">BASE理论</h1><p class="content-meta">Sep 06, 2023, 10 min read</p></div></div><article class="popover-hint"><h1 id="追求可用性">追求可用性<a aria-hidden="true" tabindex="-1" href="#追求可用性" class="internal"> §</a></h1>
+<h1 id="常青笔记">常青笔记<a aria-hidden="true" tabindex="-1" href="#常青笔记" class="internal"> §</a></h1>
+<ul>
+<li>BASE 是对 CAP 中<strong>一致性和可用性权衡的结果</strong>。更强调<span class="text-highlight">追求可用性</span>。核心思想是，即使无法做到强一致性，但每个系统都可以根据自身的业务 特点，采用适当的方式来使系统达到**<a href="./最终一致性" class="internal">最终一致性</a>**</li>
+<li>基本可用，即指可以允许损失部分可用性。常见的服务质量下降有两种类型。<strong>响应时间的损失和功能的损失</strong>(<a href="./服务降级" class="internal">服务降级</a>)。又可以从其他角度分为<strong>流量削峰</strong>、<strong>延迟响应</strong>、<strong>体验降级</strong>、<strong>过载保护</strong>。</li>
+<li><a href="./ACID" class="internal">ACID</a> 理论是传统数据库常用的设计理念，追求强一致性模型。BASE 理论支持的是大型分布式系统，<strong>通过牺牲强一致性获得高可用性</strong>。BASE 理论在很大程度上，解决了事务型系统在性能、容错、可用性等方面痛点。BASE 理论在 <strong>NoSQL</strong> 中应用广泛，是 NoSQL 系统设计的事实上的理论支撑。</li>
+</ul>
+<h1 id="概念">概念<a aria-hidden="true" tabindex="-1" href="#概念" class="internal"> §</a></h1>
+<p>BASE 理论是 CAP 理论中的 AP 的延伸，是对互联网大规模分布式系统的实践总结，强调<strong>可用性</strong>。</p>
+<p>它的核心就是<strong>基本可用</strong>（Basically Available）和<strong>最终一致性</strong>（Eventually consistent）。也有人会提到软状态（Soft state），在我看来，软状态描述的是实现服务可用性的时候系统数据的一种过渡状态，也就是说不同节点间，数据副本存在短暂的不一致。你只需要知道软状态是一种过渡状态就可以了。
+BASE 是 Basically Available（基本可用）、Soft state（软状态，即可以是中间态,不影响系统的过渡态）和 Eventually consistent（最终一致性）三个短语的简写，BASE 是对 CAP 中<strong>一致性和可用性权衡的结果</strong>，其来源于对大 规模互联网系统分布式实践的结论，是基于 CAP 定理逐步演化而来的。</p>
+<p>BASE 理论的核心思想是：即使无法做到强一致性，但每个系统都可以根据自身的业务 特点，采用适当的方式来使系统达到<strong>最终一致性</strong>。</p>
+<ol>
+<li>基本可用. 基本可用是指分布式系统在出现不可预知故障的时候，允许损失部分可用性。即允许服 务质量下降。常见的服务质量下降有两种类型：</li>
+</ol>
+<ul>
+<li>响应时间的损失</li>
+<li>功能的损失(服务降级)</li>
+</ul>
+<ol start="2">
+<li>软状态。 软状态，是指允许系统数据存在的中间状态，并认为该中间状态的存在不会影响系统的 整体可用性，即允许系统主机间进行数据同步的过程存在一定延时。软状态，其实就是一种 灰度状态，过渡状态。</li>
+<li>最终一致性 最终一致性强调的是系统中所有的数据副本，在<strong>经过一段时间</strong>的同步后，最终能够达到 一个一致的状态。</li>
+</ol>
+<h2 id="一致性的数据以什么为准">一致性的数据，以什么为准？<a aria-hidden="true" tabindex="-1" href="#一致性的数据以什么为准" class="internal"> §</a></h2>
+<p>你首先要知道它以什么为准，因为这是实现最终一致性的关键。一般来说，在实际工程实践中有这样几种方式：</p>
+<ul>
+<li>以最新写入的数据为准，比如 AP 模型的 KV 存储采用的就是这种方式；</li>
+<li>以第一次写入的数据为准，如果你不希望存储的数据被更改，可以以它为准。</li>
+</ul>
+<h2 id="一致性的具体方式">一致性的具体方式<a aria-hidden="true" tabindex="-1" href="#一致性的具体方式" class="internal"> §</a></h2>
+<p>那实现最终一致性的具体方式是什么呢？常用的有这样几种。</p>
+<ul>
+<li>读时修复：在读取数据时，检测数据的不一致，进行修复。比如 Cassandra 的 Read Repair 实现，具体来说，在向 Cassandra 系统查询数据的时候，如果检测到不同节点的副本数据不一致，系统就自动修复数据。</li>
+<li>写时修复：在写入数据，检测数据的不一致时，进行修复。比如 Cassandra 的 Hinted Handoff 实现。具体来说，Cassandra 集群的节点之间远程写数据的时候，如果写失败就将数据缓存下来，然后定时重传，修复数据的不一致性。</li>
+<li>异步修复：这个是最常用的方式，通过定时对账检测副本数据的一致性，并修复</li>
+</ul>
+<h2 id="如何应用">如何应用？<a aria-hidden="true" tabindex="-1" href="#如何应用" class="internal"> §</a></h2>
+<p>我们可以通过写时修复和异步修复实现最终一致性。另外，还实现自定义写一致性级别，支持 All、Quorum、One、Any 4 种写一致性级别，用户在写数据的时候，可以根据业务数据的特点，设置不同的写一致性级别</p>
+<p><a href="https://book.clickear.top/114-%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%8F%E8%AE%AE%E4%B8%8E%E7%AE%97%E6%B3%95%E5%AE%9E%E6%88%98/01%E4%B8%A8%E7%90%86%E8%AE%BA%E7%AF%87%20(4%E8%AE%B2)/04%E4%B8%A8BASE%E7%90%86%E8%AE%BA%EF%BC%9ACAP%E7%9A%84%E7%A2%B1%EF%BC%8C%E8%BF%BD%E6%B1%82%E5%8F%AF%E7%94%A8%E6%80%A7.html" class="external">Base理论</a></p>
+<h2 id="解决方案">解决方案<a aria-hidden="true" tabindex="-1" href="#解决方案" class="internal"> §</a></h2>
+<h3 id="本地消息表基于-mq-的可靠消息投递方案最常用最终一致性"><a href="./本地消息表" class="internal">本地消息表</a>⭐ (基于 MQ 的可靠消息投递方案，最常用，最终一致性)<a aria-hidden="true" tabindex="-1" href="#本地消息表基于-mq-的可靠消息投递方案最常用最终一致性" class="internal"> §</a></h3>
+<p><a href="./MQ" class="internal">MQ</a></p>
+<p>基于 MQ 的可靠消息投递的方案不仅可以解决由于业务流程的同步执行而造成的阻塞问题，还可以实现业务解耦合流量削峰。<strong>生产者需要额外创建消息表，还需要对本地消息表进行轮询，业务负担较重</strong></p>
+<ol>
+<li>
+<p><strong>MQ 手动应答机制处理消息丢失</strong></p>
+</li>
+<li>
+<p>双向消息确认机制,解决<strong>高并发场景下的消息积压导致消息丢失</strong></p>
+<ol>
+<li>生产者，本地持久化消息，状态为待发送</li>
+<li>生产者，发送到mq，消息状态为 已发送</li>
+<li>消费者，消费消息，并回复给生产者，消息状态为 已完成
+这样，即使最终 MQ 出现了消息丢失，也可以查询数据库，补偿重发</li>
+</ol>
+</li>
+</ol>
+<p><img src="http://image.clickear.top/20220119121624.png" alt="http://image.clickear.top/20220119121624.png"/></p>
+<p><strong>容错机制：</strong></p>
+<ul>
+<li>扣减余额事务 失败时，事务直接回滚，无后续步骤</li>
+<li>轮序生产消息失败， 增加余额事务失败都会进行重试</li>
+</ul>
+<p><strong>本地消息表的特点：</strong></p>
+<ul>
+<li>长事务仅需要分拆成多个任务，使用简单</li>
+<li>生产者需要额外的创建消息表</li>
+<li>每个本地消息表都需要进行轮询</li>
+<li>消费者的逻辑如果无法通过重试成功，那么还需要更多的机制，来回滚操作</li>
+</ul>
+<p>适用于可异步执行的业务，且后续操作无需回滚的业务。</p>
+<h3 id="最大努力通知适用于微信交易通知等"><a href="./最大努力通知" class="internal">最大努力通知</a>（适用于微信交易通知等）<a aria-hidden="true" tabindex="-1" href="#最大努力通知适用于微信交易通知等" class="internal"> §</a></h3>
+<p>可靠消息一致性，<strong>发起通知方</strong>需要保证将消息发出去，并且将消息发到接收通知方，消息的可靠性关键由发起通知方来保证。</p>
+<p>最大努力通知，发起通知方尽最大的努力将业务处理结果通知为接收通知方，但是可能消息接收不到，此时需要<strong>接收通知方主动调用发起通知方的接口查询业务处理结果</strong>，通知的可靠性关键在接收通知方。</p>
+<p><strong>解决方案上，最大努力通知需要：</strong></p>
+<ul>
+<li>提供接口，让接受通知放能够通过接口查询业务处理结果</li>
+<li>消息队列ACK机制，消息队列按照间隔1min、5min、10min、30min、1h、2h、5h、10h的方式，逐步拉大通知间隔 ，直到达到通知要求的时间窗口上限。之后不再通知</li>
+</ul>
+<p>最大努力通知适用于业务通知类型，例如微信交易的结果，就是通过最大努力通知方式通知各个商户，既有回调通知，也有交易查询接口。</p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./分布式系统导论" class="internal">分布式系统导论</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

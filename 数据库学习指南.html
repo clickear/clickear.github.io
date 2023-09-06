@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html><head><title>数据库学习指南</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="数据库学习指南"/><meta property="og:description" content="书籍 § 书籍是系统化获取知识最好的一个途径，推荐按照下面的顺序来阅读，循序渐进： 《MySQL必知必会》，很薄，可以很快读完。 《MySQL性能调优和架构设计》，很薄，可以很快读完。 通读一遍官方文档中：MySQL Server System Variables，MySQL Server System Status。 通读并测试mysql、mysqldump、mysqladmin命令行工具的参数。 《鸟哥的Linux私房菜》 《高性能MySQL（第三版）》，阿里的几个DBA翻译的，非常经典，值得耐心阅读；开发人员可以阅读这一本即可应对大部分问题。 《MySQL技术内幕：InnoDB存储引擎（第2版）》，通过这个可以了解到很多Innodb运行的内部原理。 《MySQL技术内幕：SQL编程》。 《O’Reilly：高可用MySQL：构建健壮的数据中心》，通过这个可以了解到很多replication的细节。 《Understanding MySQL Internals》，可以为进一步的阅读源码打下基础。 MySQL官方文档，官方文档历来是杀人越货居家必备，解决问题可以第一时间查阅官方文档，得到很权威的解释。 博客 § 下面列出的博客主要是一些非常经典的博客，篇篇经典，可以通过阅读历史文章来扎实自己的知识。 MySQL Performance Blog，《High Performance MySQL》的作者也是Percona的团队在维护的一个博客，包含大量的实战经验和原理分析以及Percona的最新软件以及评测。 何登成的博客，以及作者的一些PPT，分享了大量对与MySQL的内部运行原理分析，深入浅出，非常值得去学习。 YOSHINORI MATSUNOBU’S BLOG，作者编写了包含MHA、Replication Boost等诸多软件，现在在Facebook的MySQL团队，做到深入浅出，历史文章值得认真阅读。 Transactions on InnoDB，InnoDB团队维护的博客，披露了大量InnoDB引擎的实现细节。此博客的内容，主要有两方面：1."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="书籍 § 书籍是系统化获取知识最好的一个途径，推荐按照下面的顺序来阅读，循序渐进： 《MySQL必知必会》，很薄，可以很快读完。 《MySQL性能调优和架构设计》，很薄，可以很快读完。 通读一遍官方文档中：MySQL Server System Variables，MySQL Server System Status。 通读并测试mysql、mysqldump、mysqladmin命令行工具的参数。 《鸟哥的Linux私房菜》 《高性能MySQL（第三版）》，阿里的几个DBA翻译的，非常经典，值得耐心阅读；开发人员可以阅读这一本即可应对大部分问题。 《MySQL技术内幕：InnoDB存储引擎（第2版）》，通过这个可以了解到很多Innodb运行的内部原理。 《MySQL技术内幕：SQL编程》。 《O’Reilly：高可用MySQL：构建健壮的数据中心》，通过这个可以了解到很多replication的细节。 《Understanding MySQL Internals》，可以为进一步的阅读源码打下基础。 MySQL官方文档，官方文档历来是杀人越货居家必备，解决问题可以第一时间查阅官方文档，得到很权威的解释。 博客 § 下面列出的博客主要是一些非常经典的博客，篇篇经典，可以通过阅读历史文章来扎实自己的知识。 MySQL Performance Blog，《High Performance MySQL》的作者也是Percona的团队在维护的一个博客，包含大量的实战经验和原理分析以及Percona的最新软件以及评测。 何登成的博客，以及作者的一些PPT，分享了大量对与MySQL的内部运行原理分析，深入浅出，非常值得去学习。 YOSHINORI MATSUNOBU’S BLOG，作者编写了包含MHA、Replication Boost等诸多软件，现在在Facebook的MySQL团队，做到深入浅出，历史文章值得认真阅读。 Transactions on InnoDB，InnoDB团队维护的博客，披露了大量InnoDB引擎的实现细节。此博客的内容，主要有两方面：1."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="数据库学习指南"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#书籍" data-for="书籍">书籍</a></li><li class="depth-0"><a href="#博客" data-for="博客">博客</a></li><li class="depth-0"><a href="#技术大会ppt" data-for="技术大会ppt">技术大会PPT</a></li><li class="depth-0"><a href="#锲而不舍的钻研与大胆的实践" data-for="锲而不舍的钻研与大胆的实践">锲而不舍的钻研与大胆的实践</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">数据库学习指南</h1><p class="content-meta">Sep 06, 2023, 6 min read</p></div></div><article class="popover-hint"><h3 id="书籍">书籍<a aria-hidden="true" tabindex="-1" href="#书籍" class="internal"> §</a></h3>
+<p>书籍是系统化获取知识最好的一个途径，推荐按照下面的顺序来阅读，循序渐进：</p>
+<ol>
+<li>《MySQL必知必会》，很薄，可以很快读完。</li>
+<li>《MySQL性能调优和架构设计》，很薄，可以很快读完。</li>
+<li>通读一遍官方文档中：MySQL Server System Variables，MySQL Server System Status。</li>
+<li>通读并测试mysql、mysqldump、mysqladmin命令行工具的参数。</li>
+<li>《鸟哥的Linux私房菜》</li>
+<li><strong>《高性能MySQL（第三版）》，阿里的几个DBA翻译的，非常经典，值得耐心阅读；开发人员可以阅读这一本即可应对大部分问题。</strong></li>
+<li>《MySQL技术内幕：InnoDB存储引擎（第2版）》，通过这个可以了解到很多Innodb运行的内部原理。</li>
+<li>《MySQL技术内幕：SQL编程》。</li>
+<li>《O’Reilly：高可用MySQL：构建健壮的数据中心》，通过这个可以了解到很多replication的细节。</li>
+<li>《Understanding MySQL Internals》，可以为进一步的阅读源码打下基础。</li>
+<li><a href="http://dev.mysql.com/doc/" class="external">MySQL官方文档</a>，官方文档历来是杀人越货居家必备，解决问题可以第一时间查阅官方文档，得到很权威的解释。</li>
+</ol>
+<h3 id="博客">博客<a aria-hidden="true" tabindex="-1" href="#博客" class="internal"> §</a></h3>
+<p>下面列出的博客主要是一些非常经典的博客，篇篇经典，可以通过阅读历史文章来扎实自己的知识。</p>
+<ol>
+<li>
+<p><a href="http://www.mysqlperformanceblog.com/" class="external">MySQL Performance Blog</a>，《High Performance MySQL》的作者也是Percona的团队在维护的一个博客，包含大量的实战经验和原理分析以及Percona的最新软件以及评测。</p>
+</li>
+<li>
+<p><a href="http://hedengcheng.com/" class="external">何登成的博客</a>，以及作者的一些PPT，分享了大量对与MySQL的内部运行原理分析，深入浅出，非常值得去学习。</p>
+</li>
+<li>
+<p><a href="http://yoshinorimatsunobu.blogspot.com/" class="external">YOSHINORI MATSUNOBU’S BLOG</a>，作者编写了包含MHA、Replication Boost等诸多软件，现在在Facebook的MySQL团队，做到深入浅出，历史文章值得认真阅读。</p>
+</li>
+<li>
+<p><a href="https://blogs.oracle.com/mysqlinnodb/" class="external">Transactions on InnoDB</a>，InnoDB团队维护的博客，披露了大量InnoDB引擎的实现细节。此博客的内容，主要有两方面：1. MySQL发布新版本时，会有大量关于新版本中改进技术的介绍；2. 最近，InnoDB团队开始逐渐披露InnoDB各模块的实现细节，包括：Redo、Transaction Lock、Row Format等。此博客，是学习InnoDB引擎的不二选择。</p>
+</li>
+<li>
+<p><a href="http://dimitrik.free.fr/blog/index.html" class="external">DimitriK’s (dim) Weblog</a>，作者：Dimitri KRAVTCHUK。MySQL性能测试组成员，我心目中最欣赏的测试人员的模版。作为一个测试人员，开发自动化测试工具，对MySQL每一个版本进行性能测试，分析MySQL的性能瓶颈，熟知MySQL的整体架构与MySQL的源码。测试人员达到这种级别，对项目的巨大反哺作用，才得到了真正的体现。此外，DimitriK的每一篇博客，都写得非常好，从中学到了很多，无论是关于MySQL，还是关于测试。</p>
+</li>
+<li>
+<p><a href="http://www.orczhou.com/" class="external">一个故事@MySQL DBA</a>，也是《高性能MySQL》的译者，阿里的DBA，博客也写的很好。</p>
+</li>
+<li>
+<p><a href="http://dinglin.iteye.com/" class="external">追风刀·丁奇</a>，阿里的DBA，MySQL 主从同步Transfer的作者，文章披露了很多MySQL底层的一些知识，学到了很多知识。</p>
+</li>
+<li>
+<p><a href="http://blog.yufeng.info/" class="external">系统技术非业余研究</a>，霸爷的博客，涉猎范围很广泛，从这里可以了解到很多Linux底层的一些知识，反过来对与理解MySQL帮助很大。</p>
+</li>
+</ol>
+<h3 id="技术大会ppt">技术大会PPT<a aria-hidden="true" tabindex="-1" href="#技术大会ppt" class="internal"> §</a></h3>
+<p>技术大会的PPT，可以了解到业界的一些最新进展和使用方法，提供很多线索并且也可以通过别人的成功经验支撑自己的一些想法。</p>
+<ol>
+<li>Percona meeting</li>
+<li>国内的数据库大会</li>
+<li>阿里技术嘉年华里面关于数据库的session</li>
+<li>Oracle社区以及官方的一些PPT</li>
+</ol>
+<h3 id="锲而不舍的钻研与大胆的实践">锲而不舍的钻研与大胆的实践<a aria-hidden="true" tabindex="-1" href="#锲而不舍的钻研与大胆的实践" class="internal"> §</a></h3>
+<p>通过上述的一些知识储备，如果再拥有“格物致知”的精神，可以使得技术更快更稳的成长。</p>
+<p>收集到的几个经典思考题</p>
+<ol>
+<li>影响innodb性能最关键的几个参数是什么？按照优先级来回答，并且说明为什么，并且进行简单测试。</li>
+<li>构建sub-query、filesort、using temporary table、using index的语句，并使用explain查看结果</li>
+<li>会导致MySQL复制出现问题情况有哪些？构建一个Master-Slave结构，并且创造一个复制出错的场景，并且跳过出错的场景。</li>
+<li>通过mysqldump无锁备份一个Slave，并以此备份创建一个新的Slave，变成Master->2Slave的结构。</li>
+<li>MySQL字符集出现乱码，构造一个乱码的场景，如何解决，MySQL字符编码转化的过程。</li>
+</ol></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li>No backlinks found</li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

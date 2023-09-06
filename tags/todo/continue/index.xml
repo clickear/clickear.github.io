@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>todo/continue on</title><link>https://clickear.github.io/tags/todo/continue/</link><description>Recent content in todo/continue on</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://clickear.github.io/tags/todo/continue/index.xml" rel="self" type="application/rss+xml"/><item><title>MDL</title><link>https://clickear.github.io/MDL/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://clickear.github.io/MDL/</guid><description>[!INFO] MDL（metadata lock）
-1.1 当对一个表做增删改查的时候，该表会被加MDL读锁。（DML操作需要MDL读锁)
-1.2 当对表做结构变更的时候，加MDL写锁。(DDL操作需要MDL写锁)
-1.3 读读不互斥，读写，写写互斥。
-1.4 一旦出现写锁等待，不但当前操作会被阻塞，同时还会阻塞后续该表的所有操作。事务一旦申请到MDL锁后，直到事务执行完才会将锁释放。可以理解为，当前的MDL写锁，如果事务未提交，会导致后续该表都不能进行操作。 &amp;ndash;&amp;gt; 引申出一个问题，
-MDL锁主要作用是维护表元数据的数据一致性，在表上有活动事务（显式或隐式）的时候，不可以对元数据进行写入操作。
-引入MDL解决了什么问题？ 事务隔离问题，即会话A在2次查询期间，会话B对表结构做了修改，两次查询结果就会不一致(返回的结构不同)，无法满足可重复读的要求。 数据复制问题，如会话A执行了多条更新语句期间，另外一个会话B做了表结构变更并且先提交，就会导致slave在重做时，先重做alter，再重做update时就会出现复制错误的现象。 出现的问题case 在对表进行上述操作时，如果表上有活动事务（未提交或回滚），请求写入的会话会等待在Metadata lock wait 。 已经有MDL写锁时，后续的读事务也会阻塞。直到MDL写锁提交。</description></item></channel></rss>

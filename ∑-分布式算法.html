@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html><head><title>分布2式算法种类</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="分布2式算法种类"/><meta property="og:description" content="#分布式 link: 凤凰架构 待办列表 § 分布式算法-极客时间 常青笔记 § 分布式写一致性级别（All、Quorum机制、One、Any） 多副本是分布式中的重要问题，本质上分布式就是解决多副本的同步问题、共识问题。 数据同步是直接同步原始数据，状态转移。以同步为代表的数据复制方法。需要每个节点都参与同步，导致可用性太差。 主流做法，是操作转移。类型react中的增量操作。分布式一致性的解决方案是状态机复制来达到的。 Quorum机制 (多数派)：分布式节点多余一半完成了状态转换，就认为存储成功。 分布2式算法种类 § 拜占庭问题 § 一般而言，在可信环境（比如企业内网）中，系统具有故障容错能力就可以了，常见的算法有二阶段提交协议（2PC）、TCC（Try-Confirm-Cancel）、Paxos 算法、ZAB 协议、Raft 算法、Gossip 协议、Quorum NWR 算法。而在不可信的环境（比如有人做恶）中，这时系统需要具备拜占庭容错能力， 常见的拜占庭容错算法有 POW 算法、PBFT 算法。 一致性 § 在 CAP 定理中，CAP 中的强一致性（也就是 C）是指原子一致性（也就是线性一致性）。其中，Paxos、Raft 能实现线性一致性，而 ZooKeeper 基于读性能的考虑，它通过 ZAB 协议提供的是最终一致性 在需要系统状态的一致性时，你可以考虑采用二阶段提交协议(2PC)、TCC。在需要数据访问是的强一致性时，你可考虑 Raft 算法。在可用性优先的系统，你可以采用 Gossip 协议来实现最终一致性，并实现 Quorum NWR 来提供强一致性。 可用性: § 可用性说的是任何来自客户端的请求，不管访问哪个非故障节点，都能得到响应数据，但不保证是同一份最新数据，可用性强调的是服务可用。 一般来讲，采用 Gossip 协议实现最终一致性系统，它的可用性是最高的，因为哪怕只有一个节点，集群还能在运行并提供服务。其次是 Paxos 算法、ZAB 协议、Raft 算法、Quorum NWR 算法、PBFT 算法、POW 算法，它们能容忍一定数节点故障。 最后是二阶段提交协议、TCC，只有当所有节点都在运行时，才能工作，可用性最低。 性能 § 一般来讲，采用 Gossip 协议的 AP 型分布式系统，具备水平扩展能力，读写性能是最高的。 其次是 Paxos 算法、ZAB 协议、Raft 算法，因为它们都是领导者模型，写性能受限于领导者，读性能取决于一致性实现。 最后是二阶段提交协议和 TCC，因为在实现事务时，需要预留和锁定资源，性能相对低。 分布式一致性 § 如何保证数据的可靠性？即存储的不丢失？但是多副本。即有多个机器，存储同一份数据，这涉及到如何保证数据的一致性问题。 首先，容易想到的是 数据同步。每当数据有变化，把变化情况在各个节点间的复制视作一种事务性的操作。即每个节点都同步成功才算成功。如2PC、3PC协议。即通过分布式事务来保证数据的同步一致性。可靠性与可用性的矛盾造成了增加机器数量反而带来可用性的降低。以同步为代表的数据复制方法，被称为状态转移（State Transfer） 缺点: 性能差，需要每个节点都成功。可用性差。 主流做法，平衡了可用性和可靠性。数据复制方法是以操作转移（Operation Transfer）为基础。操作 解决方案 § 分布式一致性的一般解决方案按状态机复制。通俗的说，就是每个操作都是一条操作日志。 一致性模型 § 弱一致性模型 § DNS Gossip 强一致性模型 § 主要思路，是全部节点都需要同意，还是多半即可(多数派模型) 同步 MYSQL的主从复制模型，同步复制，即从节点写入成功才算成功。 异步复制，即 2PC/3PC/TCC等 Paxos Raft(multi paxos) ZAB(multi paxos的变种) 分布式共识算法与演进 § 共识 § 共识（Consensus）与一致性（Consistency）的区别： 由于翻译的关系，很多中文资料把 Consensus 同样翻译为一致性，导致网络上大量的“二手中文资料”将这两个概念混淆起来，如果你在网上看到“分布式一致性算法”，应明白其指的其实是“Distributed Consensus Algorithm”。 共识：各节点就指定值（Value）达成共识，而且达成共识后的值，就不再改变了。共识是指达成一致性的方法与过程 一致性：是指写操作完成后，能否从各节点上读到最新写入的数据，如果立即能读到，就是强一致性，如果最终能读到，就是最终一致性。一致性是指数据不同副本之间的差异 paxos的算法演进 § Paxos § 缺点: rpc调用次数多 活锁问题。即交替进行提案。 为什么需要prepare阶段？就是因为并发问题,即多个purposer MultiPaxos § 简化版本: 选举 + 复制。 选举，确定出 leader。 允许多提案者 领导者选举权， 任意副本，日志提交试用异步的commit消息。日志连续性，可以允许空洞。 Raft § 唯一的leader，领导者选举权，需要最新提的日志的副本。日志需要保证连续，日志提交需要靠推进commit index 拆分成3个子问题 领导者选举 日志复制 Safety 安全，恢复 角色: leader（领导者） 2."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="#分布式 link: 凤凰架构 待办列表 § 分布式算法-极客时间 常青笔记 § 分布式写一致性级别（All、Quorum机制、One、Any） 多副本是分布式中的重要问题，本质上分布式就是解决多副本的同步问题、共识问题。 数据同步是直接同步原始数据，状态转移。以同步为代表的数据复制方法。需要每个节点都参与同步，导致可用性太差。 主流做法，是操作转移。类型react中的增量操作。分布式一致性的解决方案是状态机复制来达到的。 Quorum机制 (多数派)：分布式节点多余一半完成了状态转换，就认为存储成功。 分布2式算法种类 § 拜占庭问题 § 一般而言，在可信环境（比如企业内网）中，系统具有故障容错能力就可以了，常见的算法有二阶段提交协议（2PC）、TCC（Try-Confirm-Cancel）、Paxos 算法、ZAB 协议、Raft 算法、Gossip 协议、Quorum NWR 算法。而在不可信的环境（比如有人做恶）中，这时系统需要具备拜占庭容错能力， 常见的拜占庭容错算法有 POW 算法、PBFT 算法。 一致性 § 在 CAP 定理中，CAP 中的强一致性（也就是 C）是指原子一致性（也就是线性一致性）。其中，Paxos、Raft 能实现线性一致性，而 ZooKeeper 基于读性能的考虑，它通过 ZAB 协议提供的是最终一致性 在需要系统状态的一致性时，你可以考虑采用二阶段提交协议(2PC)、TCC。在需要数据访问是的强一致性时，你可考虑 Raft 算法。在可用性优先的系统，你可以采用 Gossip 协议来实现最终一致性，并实现 Quorum NWR 来提供强一致性。 可用性: § 可用性说的是任何来自客户端的请求，不管访问哪个非故障节点，都能得到响应数据，但不保证是同一份最新数据，可用性强调的是服务可用。 一般来讲，采用 Gossip 协议实现最终一致性系统，它的可用性是最高的，因为哪怕只有一个节点，集群还能在运行并提供服务。其次是 Paxos 算法、ZAB 协议、Raft 算法、Quorum NWR 算法、PBFT 算法、POW 算法，它们能容忍一定数节点故障。 最后是二阶段提交协议、TCC，只有当所有节点都在运行时，才能工作，可用性最低。 性能 § 一般来讲，采用 Gossip 协议的 AP 型分布式系统，具备水平扩展能力，读写性能是最高的。 其次是 Paxos 算法、ZAB 协议、Raft 算法，因为它们都是领导者模型，写性能受限于领导者，读性能取决于一致性实现。 最后是二阶段提交协议和 TCC，因为在实现事务时，需要预留和锁定资源，性能相对低。 分布式一致性 § 如何保证数据的可靠性？即存储的不丢失？但是多副本。即有多个机器，存储同一份数据，这涉及到如何保证数据的一致性问题。 首先，容易想到的是 数据同步。每当数据有变化，把变化情况在各个节点间的复制视作一种事务性的操作。即每个节点都同步成功才算成功。如2PC、3PC协议。即通过分布式事务来保证数据的同步一致性。可靠性与可用性的矛盾造成了增加机器数量反而带来可用性的降低。以同步为代表的数据复制方法，被称为状态转移（State Transfer） 缺点: 性能差，需要每个节点都成功。可用性差。 主流做法，平衡了可用性和可靠性。数据复制方法是以操作转移（Operation Transfer）为基础。操作 解决方案 § 分布式一致性的一般解决方案按状态机复制。通俗的说，就是每个操作都是一条操作日志。 一致性模型 § 弱一致性模型 § DNS Gossip 强一致性模型 § 主要思路，是全部节点都需要同意，还是多半即可(多数派模型) 同步 MYSQL的主从复制模型，同步复制，即从节点写入成功才算成功。 异步复制，即 2PC/3PC/TCC等 Paxos Raft(multi paxos) ZAB(multi paxos的变种) 分布式共识算法与演进 § 共识 § 共识（Consensus）与一致性（Consistency）的区别： 由于翻译的关系，很多中文资料把 Consensus 同样翻译为一致性，导致网络上大量的“二手中文资料”将这两个概念混淆起来，如果你在网上看到“分布式一致性算法”，应明白其指的其实是“Distributed Consensus Algorithm”。 共识：各节点就指定值（Value）达成共识，而且达成共识后的值，就不再改变了。共识是指达成一致性的方法与过程 一致性：是指写操作完成后，能否从各节点上读到最新写入的数据，如果立即能读到，就是强一致性，如果最终能读到，就是最终一致性。一致性是指数据不同副本之间的差异 paxos的算法演进 § Paxos § 缺点: rpc调用次数多 活锁问题。即交替进行提案。 为什么需要prepare阶段？就是因为并发问题,即多个purposer MultiPaxos § 简化版本: 选举 + 复制。 选举，确定出 leader。 允许多提案者 领导者选举权， 任意副本，日志提交试用异步的commit消息。日志连续性，可以允许空洞。 Raft § 唯一的leader，领导者选举权，需要最新提的日志的副本。日志需要保证连续，日志提交需要靠推进commit index 拆分成3个子问题 领导者选举 日志复制 Safety 安全，恢复 角色: leader（领导者） 2."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="∑-分布式算法"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-1"><a href="#待办列表" data-for="待办列表">待办列表</a></li><li class="depth-1"><a href="#常青笔记" data-for="常青笔记">常青笔记</a></li><li class="depth-0"><a href="#分布2式算法种类" data-for="分布2式算法种类">分布2式算法种类</a></li><li class="depth-2"><a href="#拜占庭问题" data-for="拜占庭问题">[[拜占庭问题]]</a></li><li class="depth-2"><a href="#一致性" data-for="一致性">[[一致性]]</a></li><li class="depth-2"><a href="#可用性" data-for="可用性">[[可用性]]:</a></li><li class="depth-2"><a href="#性能" data-for="性能">性能</a></li><li class="depth-1"><a href="#分布式一致性" data-for="分布式一致性">分布式一致性</a></li><li class="depth-2"><a href="#解决方案" data-for="解决方案">解决方案</a></li><li class="depth-2"><a href="#一致性模型" data-for="一致性模型">一致性模型</a></li><li class="depth-1"><a href="#分布式共识算法与演进" data-for="分布式共识算法与演进">分布式共识算法与演进</a></li><li class="depth-2"><a href="#共识" data-for="共识">共识</a></li><li class="depth-2"><a href="#paxos的算法演进" data-for="paxos的算法演进">paxos的算法演进</a></li><li class="depth-2"><a href="#gossip-流言蜚语原来也可以实现一致性" data-for="gossip-流言蜚语原来也可以实现一致性">[[Gossip]] 流言蜚语，原来也可以实现一致性</a></li><li class="depth-2"><a href="#quorum-nwr-灵活的一致性" data-for="quorum-nwr-灵活的一致性">[[Quorum NWR]]: 灵活的一致性</a></li><li class="depth-2"><a href="#pbft-有人作恶如何达成共识" data-for="pbft-有人作恶如何达成共识">[[PBFT]] 有人作恶，如何达成共识？</a></li><li class="depth-2"><a href="#pow-工作量" data-for="pow-工作量">[[POW]] 工作量</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">分布2式算法种类</h1><p class="content-meta">Sep 06, 2023, 11 min read</p><ul class="tags"><li><a href="./tags/分布式" class="internal tag-link">#分布式</a></li></ul></div></div><article class="popover-hint"><p><a href="./tags/分布式" class="tag-link internal">#分布式</a></p>
+<p>link: <a href="http://icyfenix.cn/distribution/consensus/" class="external">凤凰架构</a></p>
+<h2 id="待办列表">待办列表<a aria-hidden="true" tabindex="-1" href="#待办列表" class="internal"> §</a></h2>
+<ul>
+<li><a href="https://book.clickear.top/114-%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%8F%E8%AE%AE%E4%B8%8E%E7%AE%97%E6%B3%95%E5%AE%9E%E6%88%98/index.html" class="external">分布式算法-极客时间</a></li>
+</ul>
+<h2 id="常青笔记">常青笔记<a aria-hidden="true" tabindex="-1" href="#常青笔记" class="internal"> §</a></h2>
+<ul>
+<li>分布式写一致性级别（All、<a href="./Quorum机制" class="internal">Quorum机制</a>、One、Any）</li>
+<li><a href="./多副本" class="internal">多副本</a>是分布式中的重要问题，本质上分布式就是解决<a href="./多副本" class="internal">多副本</a>的同步问题、共识问题。</li>
+<li><a href="./数据同步" class="internal">数据同步</a>是直接同步原始数据，<strong>状态转移</strong>。以同步为代表的数据复制方法。需要每个节点都参与同步，导致可用性太差。</li>
+<li>主流做法，是<strong>操作转移</strong>。类型react中的增量操作。分布式一致性的解决方案是<a href="./状态机复制" class="internal">状态机复制</a>来达到的。</li>
+<li><a href="./Quorum机制" class="internal">Quorum机制</a> (<a href="./多数派" class="internal">多数派</a>)：分布式节点多余一半完成了状态转换，就认为存储成功。</li>
+</ul>
+<h1 id="分布2式算法种类">分布2式算法种类<a aria-hidden="true" tabindex="-1" href="#分布2式算法种类" class="internal"> §</a></h1>
+<p><img src="http://image.clickear.top/20220126203536.png" alt="算法"/></p>
+<h3 id="拜占庭问题"><a href="./拜占庭问题" class="internal">拜占庭问题</a><a aria-hidden="true" tabindex="-1" href="#拜占庭问题" class="internal"> §</a></h3>
+<p>一般而言，在可信环境（比如企业内网）中，系统具有故障容错能力就可以了，常见的算法有二阶段提交协议（2PC）、TCC（Try-Confirm-Cancel）、Paxos 算法、ZAB 协议、Raft 算法、Gossip 协议、Quorum NWR 算法。而在不可信的环境（比如有人做恶）中，这时系统需要具备拜占庭容错能力，<br/>
+常见的拜占庭容错算法有 POW 算法、PBFT 算法。</p>
+<h3 id="一致性"><a href="./一致性" class="internal">一致性</a><a aria-hidden="true" tabindex="-1" href="#一致性" class="internal"> §</a></h3>
+<p>在 CAP 定理中，CAP 中的强一致性（也就是 C）是指原子一致性（也就是线性一致性）。其中，<a href="./Paxos" class="internal">Paxos</a>、<a href="./Raft" class="internal">Raft</a> 能实现线性一致性，而 ZooKeeper 基于读性能的考虑，它通过 <a href="./ZAB" class="internal">ZAB</a> 协议提供的是<a href="./最终一致性" class="internal">最终一致性</a></p>
+<p>在需要<a href="./一致性#acid中的一致性-系统状态的一致性" class="internal">系统状态的一致性</a>时，你可以考虑采用二阶段提交协议(<a href="./2PC" class="internal">2PC</a>)、<a href="./TCC" class="internal">TCC</a>。在需要数据访问是的强一致性时，你可考虑 <a href="./Raft" class="internal">Raft</a> 算法。在可用性优先的系统，你可以采用 Gossip 协议来实现最终一致性，并实现 Quorum NWR 来提供强一致性。</p>
+<h3 id="可用性"><a href="./可用性" class="internal">可用性</a>:<a aria-hidden="true" tabindex="-1" href="#可用性" class="internal"> §</a></h3>
+<p>可用性说的是任何来自客户端的请求，不管访问哪个非故障节点，都能得到响应数据，但不保证是同一份最新数据，可用性强调的是服务可用。<br/>
+一般来讲，采用 <a href="./Gossip" class="internal">Gossip</a> 协议实现最终一致性系统，它的可用性是最高的，因为哪怕只有一个节点，集群还能在运行并提供服务。其次是 <a href="./Paxos" class="internal">Paxos</a> 算法、<a href="./ZAB" class="internal">ZAB</a> 协议、<a href="./Raft" class="internal">Raft</a> 算法、<a href="./Quorum-NWR" class="internal">Quorum NWR</a> 算法、<a href="./PBFT" class="internal">PBFT</a> 算法、<a href="./POW" class="internal">POW</a> 算法，它们能容忍一定数节点故障。<br/>
+最后是二阶段提交协议、TCC，只有当所有节点都在运行时，才能工作，可用性最低。</p>
+<h3 id="性能">性能<a aria-hidden="true" tabindex="-1" href="#性能" class="internal"> §</a></h3>
+<p>一般来讲，采用 Gossip 协议的 <a href="./AP" class="internal">AP</a> 型分布式系统，具备水平扩展能力，读写性能是最高的。<br/>
+其次是 Paxos 算法、ZAB 协议、Raft 算法，因为它们都是<a href="./领导者模型" class="internal">领导者模型</a>，写性能受限于领导者，读性能取决于一致性实现。<br/>
+最后是二阶段提交协议和 <a href="./TCC" class="internal">TCC</a>，因为在实现事务时，需要预留和锁定资源，性能相对低。</p>
+<h2 id="分布式一致性">分布式一致性<a aria-hidden="true" tabindex="-1" href="#分布式一致性" class="internal"> §</a></h2>
+<ul>
+<li>如何保证数据的可靠性？即存储的不丢失？但是<a href="./多副本" class="internal">多副本</a>。即有多个机器，存储同一份数据，这涉及到如何保证数据的一致性问题。</li>
+<li>首先，容易想到的是 <a href="./数据同步" class="internal">数据同步</a>。每当数据有变化，把变化情况在各个节点间的复制视作一种事务性的操作。即<strong>每个节点都同步成功才算成功</strong>。如<a href="./2PC" class="internal">2PC</a>、<a href="./3PC" class="internal">3PC</a>协议。即通过<a href="./分布式事务" class="internal">分布式事务</a>来保证数据的同步一致性。可靠性与可用性的矛盾造成了增加机器数量反而带来可用性的降低。以同步为代表的数据复制方法，被称为<strong>状态转移</strong>（State Transfer）
+<ul>
+<li>缺点: 性能差，需要每个节点都成功。可用性差。</li>
+</ul>
+</li>
+<li>主流做法，平衡了可用性和可靠性。数据复制方法是以<strong>操作转移</strong>（Operation Transfer）为基础。操作</li>
+</ul>
+<h3 id="解决方案">解决方案<a aria-hidden="true" tabindex="-1" href="#解决方案" class="internal"> §</a></h3>
+<p>分布式一致性的一般解决方案按<a href="./状态机复制" class="internal">状态机复制</a>。通俗的说，就是每个操作都是一条操作日志。</p>
+<h3 id="一致性模型">一致性模型<a aria-hidden="true" tabindex="-1" href="#一致性模型" class="internal"> §</a></h3>
+<h4 id="弱一致性模型">弱一致性模型<a aria-hidden="true" tabindex="-1" href="#弱一致性模型" class="internal"> §</a></h4>
+<ul>
+<li>DNS</li>
+<li><a href="./Gossip" class="internal">Gossip</a></li>
+</ul>
+<h4 id="强一致性模型">强一致性模型<a aria-hidden="true" tabindex="-1" href="#强一致性模型" class="internal"> §</a></h4>
+<p>主要思路，是全部节点都需要同意，还是多半即可(多数派模型)</p>
+<ul>
+<li>同步</li>
+</ul>
+<blockquote>
+<ol>
+<li>MYSQL的主从复制模型，同步复制，即从节点写入成功才算成功。</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="2">
+<li>异步复制，即</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="3">
+<li>2PC/3PC/TCC等</li>
+</ol>
+</blockquote>
+<ul>
+<li><a href="./Paxos" class="internal">Paxos</a></li>
+<li><a href="./Raft" class="internal">Raft</a>(multi paxos)</li>
+<li><a href="./ZAB" class="internal">ZAB</a>(multi paxos的变种)</li>
+</ul>
+<h2 id="分布式共识算法与演进">分布式共识算法与演进<a aria-hidden="true" tabindex="-1" href="#分布式共识算法与演进" class="internal"> §</a></h2>
+<h3 id="共识">共识<a aria-hidden="true" tabindex="-1" href="#共识" class="internal"> §</a></h3>
+<p><a href="./共识" class="internal">共识</a>（Consensus）与<a href="./一致性" class="internal">一致性</a>（Consistency）的区别：</p>
+<blockquote>
+<p>由于翻译的关系，很多中文资料把 Consensus 同样翻译为一致性，导致网络上大量的“二手中文资料”将这两个概念混淆起来，如果你在网上看到“分布式一致性算法”，应明白其指的其实是“Distributed Consensus Algorithm”。</p>
+</blockquote>
+<ul>
+<li>共识：各节点就指定值（Value）达成共识，而且达成共识后的值，就不再改变了。共识是<strong>指达成一致性的方法与过程</strong></li>
+<li>一致性：是指写操作完成后，能否从各节点上读到最新写入的数据，如果立即能读到，就是强一致性，如果最终能读到，就是最终一致性。一致性是指数据不同副本之间的差异</li>
+</ul>
+<h3 id="paxos的算法演进">paxos的算法演进<a aria-hidden="true" tabindex="-1" href="#paxos的算法演进" class="internal"> §</a></h3>
+<p><img src="http://image.clickear.top/20220126145714.png" alt/><br/>
+<img src="http://image.clickear.top/%E5%88%86%E5%B8%83%E5%BC%8F%E7%AE%97%E6%B3%95(Paxos).png" alt="paxos"/></p>
+<h4 id="paxos"><a href="./Paxos" class="internal">Paxos</a><a aria-hidden="true" tabindex="-1" href="#paxos" class="internal"> §</a></h4>
+<p>缺点:</p>
+<ol>
+<li>rpc调用次数多</li>
+<li>活锁问题。即交替进行提案。</li>
+<li>为什么需要prepare阶段？就是因为并发问题,即多个purposer</li>
+</ol>
+<h4 id="multipaxos"><a href="./MultiPaxos" class="internal">MultiPaxos</a><a aria-hidden="true" tabindex="-1" href="#multipaxos" class="internal"> §</a></h4>
+<p>简化版本:</p>
+<ol>
+<li>选举 + 复制。 选举，确定出 leader。</li>
+<li>允许多提案者</li>
+<li>领导者选举权， 任意副本，日志提交试用异步的commit消息。日志连续性，可以允许空洞。</li>
+</ol>
+<h4 id="raft"><a href="./Raft" class="internal">Raft</a><a aria-hidden="true" tabindex="-1" href="#raft" class="internal"> §</a></h4>
+<ol>
+<li>唯一的leader，领导者选举权，需要最新提的日志的副本。日志需要保证连续，日志提交需要靠推进commit index<br/>
+拆分成3个子问题</li>
+<li>领导者选举</li>
+<li>日志复制</li>
+<li>Safety 安全，恢复<br/>
+角色:</li>
+<li>leader（领导者） 2. Follower(更随者) 3. Candidate(参与者)<br/>
+角色是动态变化的，而不是固定的。</li>
+</ol>
+<h4 id="multipaxos-zabraft-为什么是等价算法"><a href="./MultiPaxos" class="internal">MultiPaxos</a> 、<a href="./ZAB" class="internal">ZAB</a>、<a href="./Raft" class="internal">Raft</a> 为什么是等价算法？<a aria-hidden="true" tabindex="-1" href="#multipaxos-zabraft-为什么是等价算法" class="internal"> §</a></h4>
+<p>核心的原理一样</p>
+<ol>
+<li>通过随机超时来实现无活锁的选主过程。</li>
+<li>通过主节点来发起写操作。同时只有1个主节点。</li>
+<li>通过心跳来检测存活性</li>
+<li>通过<a href="https://www.notion.so/Quorum-f31058d3ebfc4b5bb175b5181196f0a3" class="external">Quorum</a>机制来保证一致性</li>
+</ol>
+<p><a href="https://blog.csdn.net/weixin_34401479/article/details/90588562?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0.pc_relevant_default&amp;spm=1001.2101.3001.4242.1&amp;utm_relevant_index=3" class="external">RAFT</a></p>
+<p>具体细节上可以有差异：<br/>
+譬如是全部节点都能参与选主，还是部分节点能参与，<br/>
+譬如Quorum中是众生平等还是各自带有权重，<br/>
+譬如该怎样表示值的方式</p>
+<p><a href="./MultiPaxos" class="internal">MultiPaxos</a> 无需要求日志顺序，达成共识后，这个值不能变。<br/>
+ZAB和Raft: “一切以领导者为准”的强领导者模型和严格按照顺序提交日志是一样的。</p>
+<p>ZAB 协议要实现操作的顺序性，而 Raft 的设计目标，不仅仅是操作的顺序性，而是线性一致性，这两个目标，都决定了它们不能允许日志不连续，要按照顺序提交日志，那么，它们就要通过上面的方法实现日志的顺序性，并保证达成共识（也就是提交）后的日志不会再改变。</p>
+<h4 id="为什么在-multi-paxosraft-中需要状态机呢">为什么在 Multi-Paxos、Raft 中需要状态机呢？<a aria-hidden="true" tabindex="-1" href="#为什么在-multi-paxosraft-中需要状态机呢" class="internal"> §</a></h4>
+<p>Multi-Paxos、Raft 都是共识算法，而共识算法是就一系列值达成共识的，达成共识后，这个值就不能改了。但有时候我们是需要更改数据的值的，比如 KV 存储，我们肯定需要更改指定 key（比如 X）对应的值，这时我们就可以通过状态机来解决这个问题。<br/>
+比如，如果你想把 X 的值改为 7，那你可以提议一个新的指令“SET X = 7”，当这个指令被达成共识并提交到状态机后，你查询到的值就是 7 了，也就成功修改了 X 的值。</p>
+<h4 id="zab是基于主备模式的原子广播协议"><a href="./ZAB" class="internal">ZAB</a>是基于主备模式的原子广播协议<a aria-hidden="true" tabindex="-1" href="#zab是基于主备模式的原子广播协议" class="internal"> §</a></h4>
+<h3 id="gossip-流言蜚语原来也可以实现一致性"><a href="./Gossip" class="internal">Gossip</a> 流言蜚语，原来也可以实现一致性<a aria-hidden="true" tabindex="-1" href="#gossip-流言蜚语原来也可以实现一致性" class="internal"> §</a></h3>
+<h3 id="quorum-nwr-灵活的一致性"><a href="./Quorum-NWR" class="internal">Quorum NWR</a>: 灵活的一致性<a aria-hidden="true" tabindex="-1" href="#quorum-nwr-灵活的一致性" class="internal"> §</a></h3>
+<h3 id="pbft-有人作恶如何达成共识"><a href="./PBFT" class="internal">PBFT</a> 有人作恶，如何达成共识？<a aria-hidden="true" tabindex="-1" href="#pbft-有人作恶如何达成共识" class="internal"> §</a></h3>
+<h3 id="pow-工作量"><a href="./POW" class="internal">POW</a> 工作量<a aria-hidden="true" tabindex="-1" href="#pow-工作量" class="internal"> §</a></h3></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./Raft" class="internal">Raft</a></li><li><a href="." class="internal">AboutTheGarden</a></li><li><a href="./§-分布式" class="internal">§ 分布式</a></li><li><a href="./分布式系统导论" class="internal">分布式系统导论</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

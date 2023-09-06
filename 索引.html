@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html><head><title>索引</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="索引"/><meta property="og:description" content="索引，排好序的查找结构 索引的目的在于提高查询效率，可以类比字典、 火车站的车次表、图书的目录等。 本质上，是一种排好序的快速查找数据结构。 优势: 提高数据检索效率，降低数据库IO成本 降低数据排序的成本，降低CPU的消耗 劣势: 索引也是一张表，保存了主键和索引字段，并指向实体表的记录，所以也需要占用内存 虽然索引大大提高了查询速度，同时却会降低更新表的速度，如对表进行INSERT、UPDATE和DELETE。 因为更新表时，MySQL不仅要保存数据，还要保存一下索引文件每次更新添加了索引列的字段， 都会调整因为更新所带来的键值变化后的索引信息 索引分类 § 数据结构角度 § B+树索引 Hash索引, meory引擎 Full-Text全文索引 R-Tree索引 从物理存储角度 § 聚集索引（clustered index）innodb 非聚集索引（non-clustered index），也叫辅助索引（secondary index）myisam 聚集索引和非聚集索引都是B+树结构 从逻辑角度 § 主键索引：主键索引是一种特殊的唯一索引，不允许有空值 普通索引或者单列索引：每个索引只包含单个列，一个表可以有多个单列索引 多列索引（复合索引、联合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合 唯一索引或者非唯一索引 空间索引：空间索引是对空间数据类型的字段建立的索引，MYSQL中的空间数据类型有4种，分别是GEOMETRY、POINT、LINESTRING、POLYGON。 MYSQL使用SPATIAL关键字进行扩展，使得能够用于创建正规索引类型的语法创建空间索引。创建空间索引的列，必须将其声明为NOT NULL，空间索引只能在存储引擎为MYISAM的表中创建 索引数据结构 § 二叉树 xx § 不适合用作当作索引，数据量庞大的话，二叉树的层数会很大，查找效率固然也很慢。顺序插入，退化成了链表 红黑树xx § 存储大数据量，树的高度不可控， 数量越大，树的高度越高；500w行数据，2的n次方=500w数据量， n是树的高度，也就是查询次数 B树 xx § 本质是多路二叉树；叶节点具有相同的深度，叶节点的指针为空；所有索引元素不重复；节点中数据索引从左到右依次递增的 B+树 § 非叶子节点不存储data，只存储索引(冗余)，可以放更多的索引 叶子节点包含所有索引字段 叶子节点用指针连接，提高区间访问的性能 只有叶子节点带有卫星数据data（索引元素所指向的数据记录） 为什么Mysql索引要用B+树不是B树？ § 用B+树不用B树考虑的是IO对性能的影响，B树的每个节点都存储数据，而B+树只有叶子节点才存储数据，所以查找相同数据量的情况下，B树的高度更高，IO更频繁。数据库索引是存储在磁盘上的，当数据量大时，就不能把整个索引全部加载到内存了，只能逐一加载每一个磁盘页（对应索引树的节点）。 其中在MySQL底层对B+树进行进一步优化：在叶子节点中是双向链表，且在链表的头结点和尾节点也是循环指向的 用B+树，引发的一些问题 § 先总结下，B+树的特点 非叶子节点不存储data，只存储索引(冗余)，可以放更多的索引。 叶子节点包含所有索引字段 叶子节点用指针连接，提高区间访问的性能 只有叶子节点带有卫星数据data（索引元素所指向的数据记录） 问题: 聚集索引与非聚集索引(即叶子节点存储的data到底是什么?) 叶子结点存放的是数据还是指向数据的内存地址。 为什么建议自增ID? bigint 存储空间少，比较大小快。不建议用uuid。或者可使用 分布式id。 本质是多路多叉树，避免节点分裂和重新平衡。 为什么InnoDB表必须有主键，并且推荐使用证型的自增主键？？ InnoDB引擎使用聚集索引，数据记录本身被存于主索引（一颗B+Tree）的叶子节点上。这就要求同一个叶子节点内（大小为一个内存页或磁盘页）的各条数据记录按主键顺序存放，因此每当有一条新的记录插入时，MySQL会根据其主键将其插入适当的节点和位置，如果页面达到装载因子（InnoDB默认为15/16），则开辟一个新的页（节点） 如果表使用自增主键，那么每次插入新的记录，记录就会顺序添加到当前索引节点的后续位置，当一页写满，就会自动开辟一个新的页，这样就会形成一个紧凑的索引结构，近似顺序填满。由于每次插入时也不需要移动已有数据，因此效率很高，也不会增加很多开销在维护索引上。 如果使用非自增主键（如果身份证号或学号等），由于每次插入主键的值近似于随机，因此每次新纪录都要被插到现有索引页得中间某个位置。此时MySQL不得不为了将新记录插到合适位置而移动数据，甚至目标页面可能已经被回写到磁盘上而从缓存中清掉，此时又要从磁盘上读回来，这增加了很多开销，同时频繁的移动、分页操作造成了大量的碎片，得到了不够紧凑的索引结构，后续不得不通过OPTIMIZE TABLE来重建表并优化填充页面。 为什么非主键索引结构叶子节点存储的是主键值(一致性和节省存储空间,如果普通索引中就可以得到查询的记录，称为索引覆盖,否则需要进行回表操作) 自增主键为什么不是连续的？ 唯一键冲突是导致自增主键id 事务回滚也会产生类似的现象 批量申请自增id策略，预申请 删除主键索引和普通索引的区别？ 如果删除，新建主键索引，会同时去修改普通索引对应的主键索引，性能消耗比较大 删除重建普通索引貌似影响不大，不过要注意在业务低谷期操作，避免影响业务 主键索引、普通索引和联合索引的存储结构? § 假设，一个表中有id (主键)、name（普通索引）、name-age联合索引 主键索引: 非叶子节点，是 主键值进行排序 叶子节点，存储的是数据 普通索引: 非叶子节点，是 索引字段进行排序."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="索引，排好序的查找结构 索引的目的在于提高查询效率，可以类比字典、 火车站的车次表、图书的目录等。 本质上，是一种排好序的快速查找数据结构。 优势: 提高数据检索效率，降低数据库IO成本 降低数据排序的成本，降低CPU的消耗 劣势: 索引也是一张表，保存了主键和索引字段，并指向实体表的记录，所以也需要占用内存 虽然索引大大提高了查询速度，同时却会降低更新表的速度，如对表进行INSERT、UPDATE和DELETE。 因为更新表时，MySQL不仅要保存数据，还要保存一下索引文件每次更新添加了索引列的字段， 都会调整因为更新所带来的键值变化后的索引信息 索引分类 § 数据结构角度 § B+树索引 Hash索引, meory引擎 Full-Text全文索引 R-Tree索引 从物理存储角度 § 聚集索引（clustered index）innodb 非聚集索引（non-clustered index），也叫辅助索引（secondary index）myisam 聚集索引和非聚集索引都是B+树结构 从逻辑角度 § 主键索引：主键索引是一种特殊的唯一索引，不允许有空值 普通索引或者单列索引：每个索引只包含单个列，一个表可以有多个单列索引 多列索引（复合索引、联合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合 唯一索引或者非唯一索引 空间索引：空间索引是对空间数据类型的字段建立的索引，MYSQL中的空间数据类型有4种，分别是GEOMETRY、POINT、LINESTRING、POLYGON。 MYSQL使用SPATIAL关键字进行扩展，使得能够用于创建正规索引类型的语法创建空间索引。创建空间索引的列，必须将其声明为NOT NULL，空间索引只能在存储引擎为MYISAM的表中创建 索引数据结构 § 二叉树 xx § 不适合用作当作索引，数据量庞大的话，二叉树的层数会很大，查找效率固然也很慢。顺序插入，退化成了链表 红黑树xx § 存储大数据量，树的高度不可控， 数量越大，树的高度越高；500w行数据，2的n次方=500w数据量， n是树的高度，也就是查询次数 B树 xx § 本质是多路二叉树；叶节点具有相同的深度，叶节点的指针为空；所有索引元素不重复；节点中数据索引从左到右依次递增的 B+树 § 非叶子节点不存储data，只存储索引(冗余)，可以放更多的索引 叶子节点包含所有索引字段 叶子节点用指针连接，提高区间访问的性能 只有叶子节点带有卫星数据data（索引元素所指向的数据记录） 为什么Mysql索引要用B+树不是B树？ § 用B+树不用B树考虑的是IO对性能的影响，B树的每个节点都存储数据，而B+树只有叶子节点才存储数据，所以查找相同数据量的情况下，B树的高度更高，IO更频繁。数据库索引是存储在磁盘上的，当数据量大时，就不能把整个索引全部加载到内存了，只能逐一加载每一个磁盘页（对应索引树的节点）。 其中在MySQL底层对B+树进行进一步优化：在叶子节点中是双向链表，且在链表的头结点和尾节点也是循环指向的 用B+树，引发的一些问题 § 先总结下，B+树的特点 非叶子节点不存储data，只存储索引(冗余)，可以放更多的索引。 叶子节点包含所有索引字段 叶子节点用指针连接，提高区间访问的性能 只有叶子节点带有卫星数据data（索引元素所指向的数据记录） 问题: 聚集索引与非聚集索引(即叶子节点存储的data到底是什么?) 叶子结点存放的是数据还是指向数据的内存地址。 为什么建议自增ID? bigint 存储空间少，比较大小快。不建议用uuid。或者可使用 分布式id。 本质是多路多叉树，避免节点分裂和重新平衡。 为什么InnoDB表必须有主键，并且推荐使用证型的自增主键？？ InnoDB引擎使用聚集索引，数据记录本身被存于主索引（一颗B+Tree）的叶子节点上。这就要求同一个叶子节点内（大小为一个内存页或磁盘页）的各条数据记录按主键顺序存放，因此每当有一条新的记录插入时，MySQL会根据其主键将其插入适当的节点和位置，如果页面达到装载因子（InnoDB默认为15/16），则开辟一个新的页（节点） 如果表使用自增主键，那么每次插入新的记录，记录就会顺序添加到当前索引节点的后续位置，当一页写满，就会自动开辟一个新的页，这样就会形成一个紧凑的索引结构，近似顺序填满。由于每次插入时也不需要移动已有数据，因此效率很高，也不会增加很多开销在维护索引上。 如果使用非自增主键（如果身份证号或学号等），由于每次插入主键的值近似于随机，因此每次新纪录都要被插到现有索引页得中间某个位置。此时MySQL不得不为了将新记录插到合适位置而移动数据，甚至目标页面可能已经被回写到磁盘上而从缓存中清掉，此时又要从磁盘上读回来，这增加了很多开销，同时频繁的移动、分页操作造成了大量的碎片，得到了不够紧凑的索引结构，后续不得不通过OPTIMIZE TABLE来重建表并优化填充页面。 为什么非主键索引结构叶子节点存储的是主键值(一致性和节省存储空间,如果普通索引中就可以得到查询的记录，称为索引覆盖,否则需要进行回表操作) 自增主键为什么不是连续的？ 唯一键冲突是导致自增主键id 事务回滚也会产生类似的现象 批量申请自增id策略，预申请 删除主键索引和普通索引的区别？ 如果删除，新建主键索引，会同时去修改普通索引对应的主键索引，性能消耗比较大 删除重建普通索引貌似影响不大，不过要注意在业务低谷期操作，避免影响业务 主键索引、普通索引和联合索引的存储结构? § 假设，一个表中有id (主键)、name（普通索引）、name-age联合索引 主键索引: 非叶子节点，是 主键值进行排序 叶子节点，存储的是数据 普通索引: 非叶子节点，是 索引字段进行排序."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="索引"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#索引分类" data-for="索引分类">索引分类</a></li><li class="depth-1"><a href="#数据结构角度" data-for="数据结构角度">数据结构角度</a></li><li class="depth-1"><a href="#从物理存储角度" data-for="从物理存储角度">从物理存储角度</a></li><li class="depth-1"><a href="#从逻辑角度" data-for="从逻辑角度">从逻辑角度</a></li><li class="depth-0"><a href="#索引数据结构" data-for="索引数据结构">索引数据结构</a></li><li class="depth-1"><a href="#二叉树-xx" data-for="二叉树-xx">[[二叉树]] xx</a></li><li class="depth-1"><a href="#红黑树xx" data-for="红黑树xx">[[红黑树]]xx</a></li><li class="depth-1"><a href="#b树-xx" data-for="b树-xx">[[B树]] xx</a></li><li class="depth-1"><a href="#b树" data-for="b树">[[B+树]]</a></li><li class="depth-1"><a href="#为什么mysql索引要用b树不是b树" data-for="为什么mysql索引要用b树不是b树">为什么Mysql索引要用B+树不是B树？</a></li><li class="depth-0"><a href="#用b树引发的一些问题" data-for="用b树引发的一些问题">用B+树，引发的一些问题</a></li><li class="depth-0"><a href="#主键索引普通索引和联合索引的存储结构" data-for="主键索引普通索引和联合索引的存储结构">主键索引、普通索引和联合索引的存储结构?</a></li><li class="depth-0"><a href="#适用场景" data-for="适用场景">适用场景</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">索引</h1><p class="content-meta">Sep 06, 2023, 11 min read</p></div></div><article class="popover-hint"><blockquote class="callout" data-callout="info">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+                  <div class="callout-title-inner"><p>索引，排好序的查找结构 </p></div>
+                  
+                </div>
+<p>索引的目的在于提高查询效率，可以类比字典、 火车站的车次表、图书的目录等。 本质上，是<strong>一种排好序的快速查找数据结构</strong>。</p>
+</blockquote>
+<p>优势:</p>
+<ol>
+<li>提高数据检索效率，降低数据库IO成本</li>
+<li>降低数据排序的成本，降低CPU的消耗</li>
+</ol>
+<p>劣势:</p>
+<ol>
+<li>索引也是一张表，保存了主键和索引字段，并指向实体表的记录，所以也需要占用内存</li>
+<li>虽然索引大大提高了查询速度，同时却会降低更新表的速度，如对表进行INSERT、UPDATE和DELETE。 因为更新表时，MySQL不仅要保存数据，还要保存一下索引文件每次更新添加了索引列的字段， 都会调整因为更新所带来的键值变化后的索引信息</li>
+</ol>
+<h2 id="索引分类">索引分类<a aria-hidden="true" tabindex="-1" href="#索引分类" class="internal"> §</a></h2>
+<h3 id="数据结构角度">数据结构角度<a aria-hidden="true" tabindex="-1" href="#数据结构角度" class="internal"> §</a></h3>
+<ul>
+<li>B+树索引</li>
+<li>Hash索引, <a href="./memory" class="internal">meory引擎</a></li>
+<li>Full-Text全文索引</li>
+<li>R-Tree索引</li>
+</ul>
+<h3 id="从物理存储角度">从物理存储角度<a aria-hidden="true" tabindex="-1" href="#从物理存储角度" class="internal"> §</a></h3>
+<ul>
+<li>聚集索引（clustered index）<a href="./innodb" class="internal">innodb</a></li>
+<li>非聚集索引（non-clustered index），也叫辅助索引（secondary index）<a href="./myisam" class="internal">myisam</a><br/>
+聚集索引和非聚集索引都是B+树结构</li>
+</ul>
+<h3 id="从逻辑角度">从逻辑角度<a aria-hidden="true" tabindex="-1" href="#从逻辑角度" class="internal"> §</a></h3>
+<ul>
+<li>主键索引：主键索引是一种特殊的唯一索引，不允许有空值</li>
+<li>普通索引或者单列索引：每个索引只包含单个列，一个表可以有多个单列索引</li>
+<li>多列索引（复合索引、联合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合</li>
+<li>唯一索引或者非唯一索引</li>
+<li>空间索引：空间索引是对空间数据类型的字段建立的索引，MYSQL中的空间数据类型有4种，分别是GEOMETRY、POINT、LINESTRING、POLYGON。 MYSQL使用SPATIAL关键字进行扩展，使得能够用于创建正规索引类型的语法创建空间索引。创建空间索引的列，必须将其声明为NOT NULL，空间索引只能在存储引擎为MYISAM的表中创建</li>
+</ul>
+<h2 id="索引数据结构">索引数据结构<a aria-hidden="true" tabindex="-1" href="#索引数据结构" class="internal"> §</a></h2>
+<h3 id="二叉树-xx"><a href="./二叉树" class="internal">二叉树</a> xx<a aria-hidden="true" tabindex="-1" href="#二叉树-xx" class="internal"> §</a></h3>
+<p><img src="http://image.clickear.top/20210515110023.png" alt/></p>
+<p>不适合用作当作索引，数据量庞大的话，二叉树的层数会很大，查找效率固然也很慢。顺序插入，退化成了<em>链表</em></p>
+<h3 id="红黑树xx"><a href="./红黑树" class="internal">红黑树</a>xx<a aria-hidden="true" tabindex="-1" href="#红黑树xx" class="internal"> §</a></h3>
+<p>存储大数据量，树的高度不可控， 数量越大，树的高度越高；500w行数据，2的n次方=500w数据量， n是树的高度，也就是查询次数</p>
+<h3 id="b树-xx"><a href="./B树" class="internal">B树</a> xx<a aria-hidden="true" tabindex="-1" href="#b树-xx" class="internal"> §</a></h3>
+<p><img src="http://image.clickear.top/20210515105716.png" alt/><br/>
+本质是多路二叉树；叶节点具有相同的深度，叶节点的指针为空；所有索引元素不重复；节点中数据索引从左到右依次递增的</p>
+<h3 id="b树"><a href="./B+树" class="internal">B+树</a><a aria-hidden="true" tabindex="-1" href="#b树" class="internal"> §</a></h3>
+<p><img src="http://image.clickear.top/20210515110741.png" alt/></p>
+<ul>
+<li>非叶子节点不存储data，只存储索引(冗余)，可以放更多的索引</li>
+<li>叶子节点包含所有索引字段</li>
+<li>叶子节点用指针连接，提高区间访问的性能</li>
+<li>只有叶子节点带有卫星数据data（索引元素所指向的数据记录）</li>
+</ul>
+<h3 id="为什么mysql索引要用b树不是b树">为什么Mysql索引要用B+树不是B树？<a aria-hidden="true" tabindex="-1" href="#为什么mysql索引要用b树不是b树" class="internal"> §</a></h3>
+<ol>
+<li>用B+树不用B树考虑的是IO对性能的影响，B树的每个节点都存储数据，而<strong>B+树只有叶子节点才存储数据</strong>，所以查找相同数据量的情况下，B树的高度更高，IO更频繁。数据库索引是存储在磁盘上的，当数据量大时，就不能把整个索引全部加载到内存了，只能逐一加载每一个磁盘页（对应索引树的节点）。</li>
+<li>其中在MySQL底层对B+树进行进一步优化：<strong>在叶子节点中是双向链表，且在链表的头结点和尾节点也是循环指向的</strong></li>
+</ol>
+<h2 id="用b树引发的一些问题">用B+树，引发的一些问题<a aria-hidden="true" tabindex="-1" href="#用b树引发的一些问题" class="internal"> §</a></h2>
+<p>先总结下，B+树的特点</p>
+<ol>
+<li>非叶子节点不存储data，只存储索引(冗余)，可以放更多的索引。</li>
+<li>叶子节点包含所有索引字段</li>
+<li>叶子节点用指针连接，提高区间访问的性能</li>
+<li>只有叶子节点带有卫星数据data（索引元素所指向的数据记录）</li>
+</ol>
+<p>问题:</p>
+<ol>
+<li>聚集索引与非聚集索引(即叶子节点存储的data到底是什么?)
+<blockquote>
+<p>叶子结点存放的是数据还是指向数据的内存地址。</p>
+</blockquote>
+</li>
+<li>为什么建议自增ID?
+<blockquote>
+<ol>
+<li>bigint 存储空间少，比较大小快。不建议用uuid。或者可使用 <a href="./分布式id" class="internal">分布式id</a>。</li>
+<li>本质是多路多叉树，避免<strong>节点分裂</strong>和<strong>重新平衡</strong>。</li>
+</ol>
+</blockquote>
+</li>
+<li>为什么InnoDB表必须有主键，并且推荐使用证型的自增主键？？
+<blockquote>
+<p>InnoDB引擎使用聚集索引，数据记录本身被存于主索引（一颗B+Tree）的叶子节点上。这就要求同一个叶子节点内（大小为一个内存页或磁盘页）的各条数据记录<strong>按主键顺序存放</strong>，因此每当有一条新的记录插入时，MySQL会根据其主键将其插入适当的节点和位置，如果页面达到<strong>装载因子</strong>（InnoDB默认为15/16），则开辟一个新的页（节点）</p>
+<ol>
+<li>如果表使用自增主键，那么每次插入新的记录，记录就会顺序添加到当前索引节点的后续位置，当一页写满，就会自动开辟一个新的页，这样就会形成一个<strong>紧凑的索引结构</strong>，近似顺序填满。由于每次插入时也<strong>不需要移动已有数据</strong>，因此效率很高，也不会增加很多开销在维护索引上。</li>
+<li>如果使用非自增主键（如果身份证号或学号等），由于每次插入主键的值近似于<strong>随机</strong>，因此每次新纪录都要被插到<strong>现有索引页得中间某个位置</strong>。此时MySQL不得不为了将新记录插到合适位置而移动数据，甚至目标页面可能已经被回写到磁盘上而从缓存中清掉，此时又要从磁盘上读回来，这增加了很多开销，同时频繁的移动、分页操作造成了大量的碎片，得到了不够紧凑的索引结构，后续不得不通过OPTIMIZE TABLE来重建表并优化填充页面。</li>
+</ol>
+</blockquote>
+</li>
+<li>为什么非主键索引结构叶子节点存储的是主键值(<strong>一致性和节省存储空间</strong>,如果普通索引中就可以得到查询的记录，称为<a href="./索引覆盖" class="internal">索引覆盖</a>,否则需要进行<a href="./回表" class="internal">回表</a>操作)</li>
+<li><a href="./自增主键" class="internal">自增主键</a>为什么不是连续的？
+<blockquote>
+<ol>
+<li><strong>唯一键冲突</strong>是导致自增主键id</li>
+<li><strong>事务回滚</strong>也会产生类似的现象</li>
+<li>批量申请自增id策略，预申请</li>
+</ol>
+</blockquote>
+</li>
+<li>删除主键索引和普通索引的区别？
+<blockquote>
+<ol>
+<li>如果删除，新建主键索引，会同时去修改普通索引对应的主键索引，性能消耗比较大</li>
+<li>删除重建普通索引貌似影响不大，不过要注意在业务低谷期操作，避免影响业务</li>
+</ol>
+</blockquote>
+</li>
+</ol>
+<h2 id="主键索引普通索引和联合索引的存储结构">主键索引、普通索引和联合索引的存储结构?<a aria-hidden="true" tabindex="-1" href="#主键索引普通索引和联合索引的存储结构" class="internal"> §</a></h2>
+<p>假设，一个表中有id (主键)、name（普通索引）、name-age联合索引</p>
+<p>主键索引:<br/>
+非叶子节点，是 主键值进行排序<br/>
+叶子节点，存储的是数据<br/>
+普通索引:<br/>
+非叶子节点，是 索引字段进行排序.<br/>
+叶子节点，存储的是主键值。<br/>
+联合索引(最左匹配原则):<br/>
+<img src="http://image.clickear.top/20210515113740.png" alt/><br/>
+非叶子节点，由多个字段组成，进行排序<br/>
+叶子节点，存储的是主键值</p>
+<h2 id="适用场景">适用场景<a aria-hidden="true" tabindex="-1" href="#适用场景" class="internal"> §</a></h2>
+<ol>
+<li>主键自动建立唯一索引</li>
+<li>频繁作为查询条件的字段</li>
+<li>查询中与其他表关联的字段，外键关系建立索引</li>
+<li>单键/组合索引的选择问题，高并发下倾向创建组合索引</li>
+<li>查询中排序的字段，排序字段通过索引访问大幅提高排序速度</li>
+<li>查询中统计或分组字段</li>
+</ol></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./§-mysql目录" class="internal">§ mysql目录</a></li><li><a href="./锁" class="internal">锁</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

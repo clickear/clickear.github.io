@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html><head><title>cmu15445</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="cmu15445"/><meta property="og:description" content="引言 为什么需要数据库？ DBMS的提出 分离逻辑层和物理层 数据模型 关系型数据库 — mysql NoSQL 非关系型数据库 键值数据库—redis 图数据库— neo4j 文档数据库— monogodb 列族数据库 — hbase 矩阵数据库—机器学习所用。 关系模型 主键，表示一个tuple的唯一标识。 可自增或数据库自动生成，如mysql 外键 高级语言 DML 数据操作语言 过程式 —&amp;gt; 关系代数 选择(Selection) 投影(Projection) 聚集(Union) 交集(Intersection) 差集(difference) 全集(product)，笛卡尔积 连接（Join） 声明式 —&amp;gt; SQL DDL 数据定义语言 数据库架构 [存储引擎] 传统的 DBMS 架构都属于 disk-oriented architecture,即基于磁盘的 存储引擎，主要存储 索引、数据、元数据等 磁盘管理 为什么要有DBMS的磁盘管理。 基于计算机存储，同时获得易失性存储器的性能和非易失性存储器的容量，让 DBMS 的数据看起来像在内存中一样 为什么不用OS的磁盘管理？数据系统可以做出更好的选择，比如合适的时机刷脏页、预读取等策略 磁盘管理的核心问题 使用磁盘文件来表示数据库的数据。(元数据、索引、数据表等) 如何管理数据在内存与磁盘之间的移动."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="引言 为什么需要数据库？ DBMS的提出 分离逻辑层和物理层 数据模型 关系型数据库 — mysql NoSQL 非关系型数据库 键值数据库—redis 图数据库— neo4j 文档数据库— monogodb 列族数据库 — hbase 矩阵数据库—机器学习所用。 关系模型 主键，表示一个tuple的唯一标识。 可自增或数据库自动生成，如mysql 外键 高级语言 DML 数据操作语言 过程式 —&amp;gt; 关系代数 选择(Selection) 投影(Projection) 聚集(Union) 交集(Intersection) 差集(difference) 全集(product)，笛卡尔积 连接（Join） 声明式 —&amp;gt; SQL DDL 数据定义语言 数据库架构 [存储引擎] 传统的 DBMS 架构都属于 disk-oriented architecture,即基于磁盘的 存储引擎，主要存储 索引、数据、元数据等 磁盘管理 为什么要有DBMS的磁盘管理。 基于计算机存储，同时获得易失性存储器的性能和非易失性存储器的容量，让 DBMS 的数据看起来像在内存中一样 为什么不用OS的磁盘管理？数据系统可以做出更好的选择，比如合适的时机刷脏页、预读取等策略 磁盘管理的核心问题 使用磁盘文件来表示数据库的数据。(元数据、索引、数据表等) 如何管理数据在内存与磁盘之间的移动."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="cmu15445"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">cmu15445</h1><p class="content-meta">Sep 06, 2023, 9 min read</p></div></div><article class="popover-hint"><ul>
+<li>引言
+<ul>
+<li><a href="./为什么需要数据库？" class="internal">为什么需要数据库？</a></li>
+<li>DBMS的提出
+<ul>
+<li>分离逻辑层和物理层</li>
+<li><a href="./数据模型" class="internal">数据模型</a>
+<ul>
+<li><a href="./关系型数据库" class="internal">关系型数据库</a> — <a href="./mysql" class="internal">mysql</a></li>
+<li><a href="./NoSQL" class="internal">NoSQL</a> 非关系型数据库
+<ul>
+<li><a href="./键值数据库" class="internal">键值数据库</a>—<a href="./redis" class="internal">redis</a></li>
+<li><a href="./图数据库" class="internal">图数据库</a>— <a href="./neo4j" class="internal">neo4j</a></li>
+<li><a href="./文档数据库" class="internal">文档数据库</a>— <a href="./monogodb" class="internal">monogodb</a></li>
+<li><a href="./列族数据库" class="internal">列族数据库</a> — <a href="./hbase" class="internal">hbase</a></li>
+</ul>
+</li>
+<li><a href="./矩阵数据库" class="internal">矩阵数据库</a>—机器学习所用。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>关系模型
+<ul>
+<li>主键，表示一个tuple的唯一标识。 可自增或数据库自动生成，如mysql</li>
+<li>外键</li>
+</ul>
+</li>
+<li>高级语言
+<ul>
+<li><a href="./DML" class="internal">DML</a> 数据操作语言
+<ul>
+<li><a href="./Procedural" class="internal">过程式</a> —> <a href="./关系代数" class="internal">关系代数</a>
+<ul>
+<li>选择(Selection)</li>
+<li>投影(Projection)</li>
+<li>聚集(Union)</li>
+<li>交集(Intersection)</li>
+<li>差集(difference)</li>
+<li>全集(product)，笛卡尔积</li>
+<li>连接（Join）</li>
+</ul>
+</li>
+<li><a href="./声明式" class="internal">声明式</a> —> SQL</li>
+</ul>
+</li>
+<li><a href="./DDL" class="internal">DDL</a> 数据定义语言</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>数据库架构</li>
+<li><a href="./在磁盘中如何存储数据库的数据" class="internal">[存储引擎]</a>
+<ul>
+<li>传统的 DBMS 架构都属于 <strong>disk-oriented architecture</strong>,即基于磁盘的</li>
+<li>存储引擎，主要存储 索引、数据、元数据等</li>
+<li>磁盘管理
+<ul>
+<li>为什么要有DBMS的<a href="./磁盘管理" class="internal">磁盘管理</a>。
+<ul>
+<li>基于<a href="./计算机存储" class="internal">计算机存储</a>，<strong>同时获得易失性存储器的性能和非易失性存储器的容量，让 DBMS 的数据看起来像在内存中一样</strong></li>
+<li><a href="./为什么不用OS的磁盘管理？" class="internal">为什么不用OS的磁盘管理？</a>数据系统可以做出更好的选择，比如合适的时机刷脏页、预读取等策略</li>
+</ul>
+</li>
+<li>磁盘管理的核心问题
+<ul>
+<li><a href="./在文件中表示数据库" class="internal">使用磁盘文件来表示数据库的数据。(元数据、索引、数据表等)</a></li>
+<li>如何管理数据在内存与磁盘之间的移动.<a href="./数据库bufferpool" class="internal">数据库bufferpool</a></li>
+</ul>
+</li>
+<li>数据库在磁盘的展示
+<ul>
+<li>文件层级
+<ul>
+<li>对于操作系统来说，就是一个普通的二进制文件。需要使用数据库系统来分析这个二进制文件。一般来说，索引、元数据等数据，会放在不同的文件上。</li>
+<li>有些数据库，会使用定制的文件系统。但是带来的提升并不大(10%)，所以大部分的数据库都没有使用特定的文件系统。</li>
+</ul>
+</li>
+<li><a href="./数据库page" class="internal">数据库page</a>层级
+<ul>
+<li>为什么需要页？<a href="./局部性原理" class="internal">局部性原理</a>，进行预读取。</li>
+<li>页作为磁盘和内存的之间的基本交互单位。</li>
+<li>不同的页概念
+<ul>
+<li>硬件页 4KB</li>
+<li>OS page 4KB</li>
+<li>DBMS (1-16KB) 4kB: sqllite, oracle 8KB: sqlserver/postgresql 16kB: mysql 。如果保证数据完整性， <a href="./DoubleWrite" class="internal">DoubleWrite</a></li>
+</ul>
+</li>
+<li>页的管理(哪些是空闲页)
+<ul>
+<li>如果页只存在单文件，可以根据固定大小 * offset来定位</li>
+<li>但是，一般我们都是多文件。如果管理</li>
+<li>链表
+<ul>
+<li>记录 free page list 和data page list</li>
+<li>优化，双向链表</li>
+</ul>
+</li>
+<li><a href="./page-directory" class="internal">page directory</a>,页目录，定义一段数组，每个数组进行页的地址。</li>
+</ul>
+</li>
+<li>页的布局 page layout = header + data
+<ul>
+<li>header
+<ul>
+<li>pageSize 页大小</li>
+<li>checksum 校验，判断页的完整性</li>
+<li>数据库版本</li>
+<li>事务可见性</li>
+<li>压缩信息</li>
+</ul>
+</li>
+<li>data这里的数据，可以是数据，日志，索引等信息。
+<ul>
+<li>
+<p><a href="./Tuple-oriented" class="internal">Tuple-oriented</a>（存数据）</p>
+<ul>
+<li>strawman idea(基本不用), 固定大小一值append,容易碎片化</li>
+<li>slotted pages(大部分DBMS都使用这个)<br/>
+<img src="http://image.clickear.top/20230612224726.png" alt="image.png"/></li>
+</ul>
+</li>
+<li>
+<p><a href="./存日志" class="internal">[Log-structured]</a></p>
+<ul>
+<li>只存储记录日志，不存具体数据。增删改，快，因为是<a href="./顺序写" class="internal">顺序写</a>。</li>
+<li>查慢，因为要计算出来。</li>
+<li>优化方案
+<ul>
+<li>压缩日志，如2个update语句更新同一个字段，取最后一条。</li>
+<li>分级压缩</li>
+<li><img src="http://image.clickear.top/20230612225758.png" alt="image.png"/></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>tuple层级
+<ul>
+<li>tuple layout = header + attributes
+<ul>
+<li>header
+<ul>
+<li>可见性信息，并发控制用</li>
+<li>bitMap for null value值。标记哪些值是null value</li>
+</ul>
+</li>
+<li>attributes</li>
+</ul>
+</li>
+<li>tuple storage：如何使用tuple来表示数据?（字节序列）</li>
+<li>溢出页，tuple 太大时，直接使用指针来指向真正的存储的数据。真实数据存在溢出页中。专门放比较大的数据</li>
+<li>元数据存哪？把元数据当系统表来处理</li>
+</ul>
+</li>
+<li>存储模式
+<ul>
+<li><a href="./oltp" class="internal">oltp</a>,事务处理，擅长事务处理。一般用<a href="./行存储" class="internal">行存储</a> 即NSM</li>
+<li><a href="./olap" class="internal">olap</a>,分析事物处理，擅长大数据等数据分析，一般使用<a href="./列存储" class="internal">列存储</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>索引文件的存储结构，这里与数据的存储有关。
+<ul>
+<li><a href="./Tuple-oriented" class="internal">Tuple-oriented</a>存数据，使用<a href="./In-place-update-structure" class="internal">In-place update structure</a>就地更新结构，如<a href="./B+树" class="internal">B+树</a>。是直接覆盖旧记录来存储更新内容。</li>
+<li><a href="./Log-structured" class="internal">Log-structured</a>存日志，使用<a href="./out-place-update-structure" class="internal">out-place-update-structure</a>异地更新结构，会将更新的内容存到到新的位置，而不是覆盖</li>
+</ul>
+</li>
+<li><a href="./Trees" class="internal">Trees</a></li>
+<li><a href="./lock和latch的区别" class="internal">lock和latch的区别</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="./如何管理数据在内存与磁盘之间的移动[^1]。" class="internal">[数据库bufferpool]</a>
+<ul>
+<li>2个主要策略方向
+<ul>
+<li><strong>空间控制策略</strong>通过决定将 pages 写到磁盘的<strong>哪个位置</strong>，使得常常一起使用的 pages 能离得更近，从而提高 I/O 效率。</li>
+<li><strong>时间控制策略</strong>通过决定<strong>何时</strong>将 pages 读入内存，写回磁盘，使得读写的次数最小，从而提高 I/O 效率。</li>
+</ul>
+</li>
+<li>存储了什么数据？
+<ul>
+<li>tuples</li>
+<li>indexes</li>
+<li>Sorting + Join Buffers</li>
+<li>Query Caches</li>
+<li>log bugffer</li>
+<li>Dictionary Caches</li>
+</ul>
+</li>
+<li>概念
+<ul>
+<li>DBMS读取disk page后，加载到内存中(bufferpool)，这里与disk page不考虑压缩的话，直接简单拷贝，为了区分，我们一般把buffer pool中的页，称为<a href="./frames" class="internal">frames</a></li>
+<li>为了管理bufferpool 中的frames, 需要<a href="./pagetable" class="internal">pagetable</a>进行记录<a href="./frames" class="internal">frames</a>在内存的位置，引用数量，是否是脏页等信息。</li>
+<li><a href="./latch" class="internal">latch</a>,物理锁，在对<a href="./frames" class="internal">frames</a>进行<strong>操作(含读取)</strong> 时，需要对<a href="./pagetable" class="internal">pagetable</a>加<a href="./latch" class="internal">latch</a>锁。优化方向<a href="./多缓存池" class="internal">多缓存池</a></li>
+</ul>
+</li>
+<li>与磁盘中的结构对应关系
+<ul>
+<li><a href="./page" class="internal">disk page</a> —> <a href="./frames" class="internal">frames</a> 不考虑压缩情况的话，一般只是直接简单拷贝。</li>
+<li><a href="./磁盘中的数据，需要持久化" class="internal">[page directory]</a> —> <a href="./内存中的，不需要持久化" class="internal">[pagetable]</a></li>
+</ul>
+</li>
+<li>缓冲池优化
+<ul>
+<li><a href="./多缓冲池" class="internal">多缓冲池</a>, 根据record id hash 确定哪个缓冲池，然后根据<a href="./pagetable" class="internal">pagetable</a>获取<a href="./frames" class="internal">frames</a>位置</li>
+<li>预读取，mmp</li>
+<li>扫描共享(搭顺风车，查询结果共享)</li>
+<li>游标共享：Oracle支持的，基于扫描共享的技术</li>
+<li>Buffer Pool Bypass。</li>
+</ul>
+</li>
+<li>操作系统缓存,一般不用操作系统缓存。Postgresql 是唯一一个有使用操作系统缓存的。</li>
+<li>替换策略
+<ul>
+<li>重点解决问题
+<ul>
+<li><a href="./缓冲池污染" class="internal">缓冲池污染</a>，即大量全表扫描时，会把很多页都加载一遍。会导致真正需要使用的数据被替换掉。</li>
+<li>DBMS预读，导致加载的页不一定都是被用到</li>
+</ul>
+</li>
+<li><a href="./LRU" class="internal">LRU</a></li>
+<li>Clock（时钟置换算法，近似LRU)</li>
+<li><a href="./LRU-K" class="internal">LRU-K</a> ，mysql 的 <a href="./bufferpool" class="internal">bufferpool</a>实现，就是使用<a href="./LRU-K" class="internal">LRU-K</a></li>
+</ul>
+</li>
+<li>脏页回刷(Background Writing)
+<ul>
+<li>移除脏页的成本比一般页高，因为脏页还得回刷到磁盘上。而一般页直接废弃就可以。一般会使用<strong>后台定时刷</strong>.减少脏页的数量</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="./access-method" class="internal">access method</a> - 数据结构
+<ul>
+<li><a href="./哈希表" class="internal">哈希表</a>, 如 <a href="./pagetable" class="internal">pagetable</a>、<a href="./page-directory" class="internal">page directory</a> 自适应hash等。</li>
+<li><a href="./Trees" class="internal">Trees</a> 索引，数据、索引的存储结构。一般用B+tree <a href="./In-place-update-structure" class="internal">In-place update structure</a></li>
+<li><a href="./跳跃表" class="internal">跳跃表</a></li>
+<li><a href="./LSM树" class="internal">LSM树</a> — <a href="./out-place-update-structure" class="internal">out-place-update-structure</a>异地更新结构</li>
+<li><a href="./radixTree" class="internal">radixTree</a> go中的gin，路由匹配就是用radixTree</li>
+<li><a href="./trie" class="internal">trie</a> 前缀树</li>
+</ul>
+</li>
+</ul></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="." class="internal">AboutTheGarden</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

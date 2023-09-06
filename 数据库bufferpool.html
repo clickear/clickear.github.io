@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html><head><title>数据库bufferpool</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="数据库bufferpool"/><meta property="og:description" content="技巧💡 如何管理数据在内存与磁盘之间的移动? 冯诺依曼结构的特性，计算机是无法直接处理硬盘中的数据的，需要先将其加载到内存中。 内存和磁盘的移动，主要有2个方面。 空间控制策略通过决定将 pages 写到磁盘的哪个位置，使得常常一起使用的 pages 能离得更近，从而提高 I/O 效率。 时间控制策略通过决定何时将 pages 读入内存，写回磁盘，使得读写的次数最小，从而提高 I/O 效率。 概念 § frames § DBMS 启动时会使用malloc申请一片内存区域，我们将这段内存区域分成一个个固定大小的chunk并将这块区域划分成大小相同的 pages，为了与 disk pages 区别，通常称为 frames。 当 DBMS 请求一个 disk page 时，它首先需要被复制到 Buffer Pool 的一个 frame 中，且会把从磁盘中读取到的所有page放入到frame中。 磁盘page拷贝到buffer池的frame中，这个顺序是任意的，不一定要与磁盘中page的顺序一致。同时这就是很简单的拷贝，我们暂时不考虑压缩这种问题。这个page在磁盘中是什么样的，在内存中就什么样，没任何改变。同时我们对其他可能需要的page也同样调出到内存中。 pagetable § 为了管理bufferpool 中的frames, 需要pagetable进行记录frames在内存的位置，引用数量，是否是脏页等信息。 DBMS 会维护一个 page table，page table所做的事情： 负责记录每个 page 在内存中的位置， Dirty Flag，这个flag给我我们当我们读取到这个page后，这个page有没有被修改过，甚至还要追踪是谁进行了这项修改。脏页 引用计数，记录当前正在使用、正在查询该page的线程数量。如果该page还在被引用的话，我们并不想让它写回到磁盘上。 page Directory与page table 有什么区别呢？💡 page directory是数据库文件中page id 到page位置的映射，我们对page Directory所做的改变必须持久化，所有变更必须记录到磁盘，重启后可以让 DBMS 找的page。 pagetable 是buffer池frame到硬盘page的映射，这不需要保存到磁盘上。是一种在内存中的、临时的映射表，无需在磁盘中备份。不用持久化，我们可以使用hashmap或hashtable实现。但是需要保障线程安全 并发访问？ 加latch § 当被请求的 page 不在 page table 中时，DBMS 会先申请一个 latch（lock 的别名），表示该 entry 被占用，然后从 disk 中读取相关 page 到 buffer pool。 在我们想做任何事之前，必须保护pagetable不会被其他人污染或者覆盖。所以在读写之前，都要先在pagetable加latch，如果减少latch竞争呢？可以和HashMap类似的思想，如果有多个pagetable的话，就可以分散latch竞争了。 缓冲池优化 § 多缓冲池 § 为什么需要多缓冲池？减少 latch竞争💡 在访问、操作数据前，需要对pagetable进行加锁操作，避免污染或者数据被覆盖。 在多个线程争抢同一个latch的情况，他们会访问同一个page表，这就会导致多核处理器没法完全利用性能。因为关键部分会有争抢。 mysql可以设置多缓冲池实例。 通过record id进行hash，确定哪个bufferpool 根据bufferpool中的pagetable,来确定frames的位置。 预读取、mmap § 预读取，操作系统就可以帮助我们实现这种预读取处理。用mmap 扫描共享，(搭顺风车) § 技巧💡 通俗的理解为搭别人的顺风车。复用从磁盘中获取的数据用于其他查询。这和结果缓存（result caching）效果相同。通俗理解：你办事情，我在结束的地方等你，等你办好，我也用你的结果，然后去办自己的事情。 游标共享：Oracle支持的，基于扫描共享的技术 § Buffer Pool Bypass § 解决问题: 缓冲池污染，当遇到扫描量非常大的查询时，如果将所需的 pages 从磁盘中一个一个的换入 Buffer Pool，将会造成buffer池的污染，因为这些 pages 通常只使用一次，而它们的进入将导致一些可能在未来更需要的 pages 被移除，因此一些 DBMS 做了相应的优化。 思路：分配一小块内存给那个线程，当他从磁盘中读取page时，不管这个page已经在buffer池中了还是不在，都要放在这一小块另开辟的内存中，当查询完成时就会释放掉这块内存，这样不会污染buffer池。 主流数据库都支持: 操作系统page缓存 § 数据库系统有缓冲池，操作系统也有硬盘与内存之间的缓存策略，这会导致一份数据（一份磁盘page）分别在操作系统和 DMBS 中的缓冲池被缓存两次。因此大多数 DBMS 都会使用 (O_DIRECT) 来告诉操作系统不要缓存这些数据，Postgresql是主流数据库中唯一使用了操作系统page缓存得数据库。 为什么这样做？ 因为我们数据库缓冲池中有一份副本，而操作系统也缓存了一份磁盘page副本，在我们更新数据库缓冲池中的page后，操作系统缓存的那份page就是旧的，这显然是一份多余的数据。作为数据库系统，我们希望自主管理我们的page，不想让操作系统掺和。 另外，不同操作系统的page缓存策略也是不同的，同一种数据库有linux也有Windows版本，为了保证跨操作系统之间的一致性，这也需要数据库自己本身来管理一切。 替换策略 § 当缓冲池空间不足时，读入新的 pages 之前必然需要 DBMS 从缓冲池中移除一些pages。这与操作系统中的置换算法差不多。 需要注意的是， 替换策略，重点需要处理问题 § 缓冲池污染 § 如果写了一些需要全表扫描的查询语句（比如没有建立合适的索引或者没有WHERE子句的查询）。 预读 § DBMS，会对页进行预读，这样也带来了一个问题，导致加载的页不一定都是被用到。为了区分哪些是热数据。将冷热页进行分离。预读的页，都放在冷数据区即可。 算法 § LRU § 最近最少使用。 基本思想就是追踪最后被访问的时间戳，我们仅需去看哪个时间戳最老，将其置换出去即可。 具体实现方面，操作系统页面置换LRU算法提到了使用栈来解决，当然这里也可以使用队列来实现，如果有人读写了这个page就将其从队列中剔除然后放在尾部，头部的page会被一个个换出。 Clock（时钟置换算法，近似LRU) § Clock是LRU的一种近似算法，无需追踪时间戳而是追踪标志位."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="技巧💡 如何管理数据在内存与磁盘之间的移动? 冯诺依曼结构的特性，计算机是无法直接处理硬盘中的数据的，需要先将其加载到内存中。 内存和磁盘的移动，主要有2个方面。 空间控制策略通过决定将 pages 写到磁盘的哪个位置，使得常常一起使用的 pages 能离得更近，从而提高 I/O 效率。 时间控制策略通过决定何时将 pages 读入内存，写回磁盘，使得读写的次数最小，从而提高 I/O 效率。 概念 § frames § DBMS 启动时会使用malloc申请一片内存区域，我们将这段内存区域分成一个个固定大小的chunk并将这块区域划分成大小相同的 pages，为了与 disk pages 区别，通常称为 frames。 当 DBMS 请求一个 disk page 时，它首先需要被复制到 Buffer Pool 的一个 frame 中，且会把从磁盘中读取到的所有page放入到frame中。 磁盘page拷贝到buffer池的frame中，这个顺序是任意的，不一定要与磁盘中page的顺序一致。同时这就是很简单的拷贝，我们暂时不考虑压缩这种问题。这个page在磁盘中是什么样的，在内存中就什么样，没任何改变。同时我们对其他可能需要的page也同样调出到内存中。 pagetable § 为了管理bufferpool 中的frames, 需要pagetable进行记录frames在内存的位置，引用数量，是否是脏页等信息。 DBMS 会维护一个 page table，page table所做的事情： 负责记录每个 page 在内存中的位置， Dirty Flag，这个flag给我我们当我们读取到这个page后，这个page有没有被修改过，甚至还要追踪是谁进行了这项修改。脏页 引用计数，记录当前正在使用、正在查询该page的线程数量。如果该page还在被引用的话，我们并不想让它写回到磁盘上。 page Directory与page table 有什么区别呢？💡 page directory是数据库文件中page id 到page位置的映射，我们对page Directory所做的改变必须持久化，所有变更必须记录到磁盘，重启后可以让 DBMS 找的page。 pagetable 是buffer池frame到硬盘page的映射，这不需要保存到磁盘上。是一种在内存中的、临时的映射表，无需在磁盘中备份。不用持久化，我们可以使用hashmap或hashtable实现。但是需要保障线程安全 并发访问？ 加latch § 当被请求的 page 不在 page table 中时，DBMS 会先申请一个 latch（lock 的别名），表示该 entry 被占用，然后从 disk 中读取相关 page 到 buffer pool。 在我们想做任何事之前，必须保护pagetable不会被其他人污染或者覆盖。所以在读写之前，都要先在pagetable加latch，如果减少latch竞争呢？可以和HashMap类似的思想，如果有多个pagetable的话，就可以分散latch竞争了。 缓冲池优化 § 多缓冲池 § 为什么需要多缓冲池？减少 latch竞争💡 在访问、操作数据前，需要对pagetable进行加锁操作，避免污染或者数据被覆盖。 在多个线程争抢同一个latch的情况，他们会访问同一个page表，这就会导致多核处理器没法完全利用性能。因为关键部分会有争抢。 mysql可以设置多缓冲池实例。 通过record id进行hash，确定哪个bufferpool 根据bufferpool中的pagetable,来确定frames的位置。 预读取、mmap § 预读取，操作系统就可以帮助我们实现这种预读取处理。用mmap 扫描共享，(搭顺风车) § 技巧💡 通俗的理解为搭别人的顺风车。复用从磁盘中获取的数据用于其他查询。这和结果缓存（result caching）效果相同。通俗理解：你办事情，我在结束的地方等你，等你办好，我也用你的结果，然后去办自己的事情。 游标共享：Oracle支持的，基于扫描共享的技术 § Buffer Pool Bypass § 解决问题: 缓冲池污染，当遇到扫描量非常大的查询时，如果将所需的 pages 从磁盘中一个一个的换入 Buffer Pool，将会造成buffer池的污染，因为这些 pages 通常只使用一次，而它们的进入将导致一些可能在未来更需要的 pages 被移除，因此一些 DBMS 做了相应的优化。 思路：分配一小块内存给那个线程，当他从磁盘中读取page时，不管这个page已经在buffer池中了还是不在，都要放在这一小块另开辟的内存中，当查询完成时就会释放掉这块内存，这样不会污染buffer池。 主流数据库都支持: 操作系统page缓存 § 数据库系统有缓冲池，操作系统也有硬盘与内存之间的缓存策略，这会导致一份数据（一份磁盘page）分别在操作系统和 DMBS 中的缓冲池被缓存两次。因此大多数 DBMS 都会使用 (O_DIRECT) 来告诉操作系统不要缓存这些数据，Postgresql是主流数据库中唯一使用了操作系统page缓存得数据库。 为什么这样做？ 因为我们数据库缓冲池中有一份副本，而操作系统也缓存了一份磁盘page副本，在我们更新数据库缓冲池中的page后，操作系统缓存的那份page就是旧的，这显然是一份多余的数据。作为数据库系统，我们希望自主管理我们的page，不想让操作系统掺和。 另外，不同操作系统的page缓存策略也是不同的，同一种数据库有linux也有Windows版本，为了保证跨操作系统之间的一致性，这也需要数据库自己本身来管理一切。 替换策略 § 当缓冲池空间不足时，读入新的 pages 之前必然需要 DBMS 从缓冲池中移除一些pages。这与操作系统中的置换算法差不多。 需要注意的是， 替换策略，重点需要处理问题 § 缓冲池污染 § 如果写了一些需要全表扫描的查询语句（比如没有建立合适的索引或者没有WHERE子句的查询）。 预读 § DBMS，会对页进行预读，这样也带来了一个问题，导致加载的页不一定都是被用到。为了区分哪些是热数据。将冷热页进行分离。预读的页，都放在冷数据区即可。 算法 § LRU § 最近最少使用。 基本思想就是追踪最后被访问的时间戳，我们仅需去看哪个时间戳最老，将其置换出去即可。 具体实现方面，操作系统页面置换LRU算法提到了使用栈来解决，当然这里也可以使用队列来实现，如果有人读写了这个page就将其从队列中剔除然后放在尾部，头部的page会被一个个换出。 Clock（时钟置换算法，近似LRU) § Clock是LRU的一种近似算法，无需追踪时间戳而是追踪标志位."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="数据库bufferpool"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#概念" data-for="概念">概念</a></li><li class="depth-1"><a href="#frames" data-for="frames">[[frames]]</a></li><li class="depth-1"><a href="#pagetable" data-for="pagetable">[[pagetable]]</a></li><li class="depth-0"><a href="#并发访问-加latch" data-for="并发访问-加latch">并发访问？ 加[[latch]]</a></li><li class="depth-0"><a href="#缓冲池优化" data-for="缓冲池优化">缓冲池优化</a></li><li class="depth-1"><a href="#多缓冲池" data-for="多缓冲池">多缓冲池</a></li><li class="depth-1"><a href="#预读取mmap" data-for="预读取mmap">预读取、mmap</a></li><li class="depth-1"><a href="#扫描共享搭顺风车" data-for="扫描共享搭顺风车">扫描共享，(搭顺风车)</a></li><li class="depth-1"><a href="#游标共享oracle支持的基于扫描共享的技术" data-for="游标共享oracle支持的基于扫描共享的技术">游标共享：Oracle支持的，基于扫描共享的技术</a></li><li class="depth-1"><a href="#buffer-pool-bypass" data-for="buffer-pool-bypass">Buffer Pool Bypass</a></li><li class="depth-0"><a href="#操作系统page缓存" data-for="操作系统page缓存">操作系统page缓存</a></li><li class="depth-0"><a href="#替换策略" data-for="替换策略">替换策略</a></li><li class="depth-1"><a href="#替换策略重点需要处理问题" data-for="替换策略重点需要处理问题">替换策略，重点需要处理问题</a></li><li class="depth-1"><a href="#算法" data-for="算法">算法</a></li><li class="depth-1"><a href="#解决缓冲池污染即进阶的替换策略" data-for="解决缓冲池污染即进阶的替换策略">解决[[缓冲池污染]],即进阶的替换策略</a></li><li class="depth-0"><a href="#脏页回刷" data-for="脏页回刷">脏页回刷</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">数据库bufferpool</h1><p class="content-meta">Sep 06, 2023, 12 min read</p></div></div><article class="popover-hint"><blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>技巧💡 </p></div>
+                  
+                </div>
+<p>如何管理数据在内存与磁盘之间的移动?<br/>
+<a href="./冯诺依曼结构" class="internal">冯诺依曼结构</a>的特性，<strong>计算机是无法直接处理硬盘中的数据的，需要先将其加载到内存中。</strong><br/>
+内存和磁盘的移动，主要有2个方面。</p>
+<ol>
+<li><strong>空间控制策略</strong>通过决定将 pages 写到磁盘的<strong>哪个位置</strong>，使得常常一起使用的 pages 能离得更近，从而提高 I/O 效率。</li>
+<li><strong>时间控制策略</strong>通过决定<strong>何时</strong>将 pages 读入内存，写回磁盘，使得读写的次数最小，从而提高 I/O 效率。</li>
+</ol>
+</blockquote>
+<h2 id="概念">概念<a aria-hidden="true" tabindex="-1" href="#概念" class="internal"> §</a></h2>
+<h3 id="frames"><a href="./frames" class="internal">frames</a><a aria-hidden="true" tabindex="-1" href="#frames" class="internal"> §</a></h3>
+<p>DBMS 启动时会使用malloc申请一片内存区域，我们将这段内存区域分成一个个固定大小的chunk并将这块区域划分成大小相同的 pages，为了与 disk pages 区别，通常称为 <strong><a href="./frames" class="internal">frames</a>。</strong><br/>
+当 DBMS 请求一个 disk page 时，它首先需要被复制到 Buffer Pool 的一个 frame 中，且会把从磁盘中读取到的所有page放入到frame中。<br/>
+<img src="http://image.clickear.top/20230613165400.png" alt="image.png"/><br/>
+磁盘page拷贝到buffer池的frame中，这个<strong>顺序是任意的</strong>，不一定要与磁盘中page的顺序一致。同时这就是很简单的拷贝，我们暂时不考虑压缩这种问题。这个page在磁盘中是什么样的，在内存中就什么样，没任何改变。同时我们对其他可能需要的page也同样调出到内存中。</p>
+<h3 id="pagetable"><a href="./pagetable" class="internal">pagetable</a><a aria-hidden="true" tabindex="-1" href="#pagetable" class="internal"> §</a></h3>
+<p>为了管理bufferpool 中的frames, 需要<a href="./pagetable" class="internal">pagetable</a>进行记录<a href="./frames" class="internal">frames</a>在内存的位置，引用数量，是否是脏页等信息。<br/>
+DBMS 会维护一个 page table，page table所做的事情：</p>
+<ul>
+<li>负责记录每个 page 在<strong>内存中的位置</strong>，</li>
+<li>Dirty Flag，这个flag给我我们当我们读取到这个page后，这个page有没有被修改过，甚至还要追踪是谁进行了这项修改。<strong>脏页</strong></li>
+<li><strong>引用计数</strong>，记录当前正在使用、正在查询该page的线程数量。如果该page还在被引用的话，我们并不想让它写回到磁盘上。</li>
+</ul>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>page Directory与page table 有什么区别呢？💡 </p></div>
+                  
+                </div>
+<p><a href="./page-directory" class="internal">page directory</a>是数据库文件中page id 到page位置的映射，我们对page Directory所做的改变必须<strong>持久化</strong>，所有变更必须记录到磁盘，重启后可以让 DBMS 找的page。<br/>
+<a href="./pagetable" class="internal">pagetable</a> 是buffer池frame到硬盘page的映射，这不需要保存到磁盘上。是一种在内存中的、临时的映射表，无需在磁盘中备份。<strong>不用持久化</strong>，我们可以使用hashmap或hashtable实现。但是需要<strong>保障线程安全</strong></p>
+</blockquote>
+<h2 id="并发访问-加latch">并发访问？ 加<a href="./latch" class="internal">latch</a><a aria-hidden="true" tabindex="-1" href="#并发访问-加latch" class="internal"> §</a></h2>
+<p>当被请求的 page 不在 page table 中时，DBMS 会先申请一个 <a href="./latch" class="internal">latch</a>（lock 的别名），表示该 entry 被占用，然后从 disk 中读取相关 page 到 buffer pool。 在我们想做任何事之前，必须保护<a href="./pagetable" class="internal">pagetable</a>不会被其他人污染或者覆盖。所以在读写之前，都要先在<a href="./pagetable" class="internal">pagetable</a>加<a href="./latch" class="internal">latch</a>，如果减少<a href="./latch" class="internal">latch</a>竞争呢？可以和<a href="./HashMap" class="internal">HashMap</a>类似的思想，如果有多个<a href="./pagetable" class="internal">pagetable</a>的话，就可以分散<a href="./latch" class="internal">latch</a>竞争了。<br/>
+<img src="http://image.clickear.top/20230613172052.png" alt="image.png"/></p>
+<h2 id="缓冲池优化">缓冲池优化<a aria-hidden="true" tabindex="-1" href="#缓冲池优化" class="internal"> §</a></h2>
+<h3 id="多缓冲池">多缓冲池<a aria-hidden="true" tabindex="-1" href="#多缓冲池" class="internal"> §</a></h3>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>为什么需要多缓冲池？减少 <a href="./latch" class="internal">latch</a>竞争💡</p></div>
+                  
+                </div>
+<p>在访问、操作数据前，需要对<a href="./pagetable" class="internal">pagetable</a>进行加锁操作，避免污染或者数据被覆盖。<br/>
+在多个线程争抢同一个latch的情况，他们会访问同一个page表，这就会导致多核处理器没法完全利用性能。因为关键部分会有争抢。</p>
+</blockquote>
+<ul>
+<li>mysql可以设置多缓冲池实例。
+<ul>
+<li>通过record id进行hash，确定哪个<a href="./bufferpool" class="internal">bufferpool</a></li>
+<li>根据<a href="./bufferpool" class="internal">bufferpool</a>中的<a href="./pagetable" class="internal">pagetable</a>,来确定<a href="./frames" class="internal">frames</a>的位置。</li>
+</ul>
+</li>
+<li><img src="http://image.clickear.top/20230613175035.png" alt="image.png"/></li>
+</ul>
+<h3 id="预读取mmap">预读取、mmap<a aria-hidden="true" tabindex="-1" href="#预读取mmap" class="internal"> §</a></h3>
+<p>预读取，操作系统就可以帮助我们实现这种预读取处理。用mmap</p>
+<h3 id="扫描共享搭顺风车">扫描共享，(搭顺风车)<a aria-hidden="true" tabindex="-1" href="#扫描共享搭顺风车" class="internal"> §</a></h3>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>技巧💡 </p></div>
+                  
+                </div>
+<p>通俗的理解为<strong>搭别人的顺风车</strong>。复用从磁盘中获取的数据用于其他查询。这和结果缓存（result caching）效果相同。通俗理解：你办事情，我在结束的地方等你，等你办好，我也用你的结果，然后去办自己的事情。</p>
+</blockquote>
+<h3 id="游标共享oracle支持的基于扫描共享的技术">游标共享：Oracle支持的，基于扫描共享的技术<a aria-hidden="true" tabindex="-1" href="#游标共享oracle支持的基于扫描共享的技术" class="internal"> §</a></h3>
+<h3 id="buffer-pool-bypass">Buffer Pool Bypass<a aria-hidden="true" tabindex="-1" href="#buffer-pool-bypass" class="internal"> §</a></h3>
+<p>解决问题: <a href="./缓冲池污染" class="internal">缓冲池污染</a>，当遇到扫描量非常大的查询时，如果将所需的 pages 从磁盘中一个一个的换入 Buffer Pool，将会造成buffer池的污染，因为这些 pages 通常只使用一次，而它们的进入将导致一些可能在未来更需要的 pages 被移除，因此一些 DBMS 做了相应的优化。<br/>
+思路：<strong>分配一小块内存给那个线程</strong>，当他从磁盘中读取page时，不管这个page已经在buffer池中了还是不在，都要放在这一小块另开辟的内存中，当查询完成时就会释放掉这块内存，这样不会污染buffer池。<br/>
+主流数据库都支持:<br/>
+<img src="http://image.clickear.top/20230613175501.png" alt="image.png"/></p>
+<h2 id="操作系统page缓存">操作系统page缓存<a aria-hidden="true" tabindex="-1" href="#操作系统page缓存" class="internal"> §</a></h2>
+<p>数据库系统有缓冲池，操作系统也有硬盘与内存之间的缓存策略，这会导致一份数据（一份磁盘page）分别在操作系统和 DMBS 中的缓冲池被缓存两次。因此大多数 DBMS 都会使用 (O_DIRECT) 来告诉操作系统不要缓存这些数据，<strong>Postgresql</strong>是主流数据库中唯一使用了操作系统page缓存得数据库。<br/>
+为什么这样做？<br/>
+因为我们数据库缓冲池中有一份副本，而操作系统也缓存了一份磁盘page副本，在我们更新数据库缓冲池中的page后，操作系统缓存的那份page就是旧的，这显然是一份多余的数据。作为数据库系统，我们希望自主管理我们的page，不想让操作系统掺和。</p>
+<p>另外，不同操作系统的page缓存策略也是不同的，同一种数据库有linux也有Windows版本，为了保证跨操作系统之间的一致性，这也需要数据库自己本身来管理一切。</p>
+<h2 id="替换策略">替换策略<a aria-hidden="true" tabindex="-1" href="#替换策略" class="internal"> §</a></h2>
+<p>当<strong>缓冲池空间不足</strong>时，读入新的 pages 之前必然需要 DBMS 从缓冲池中移除一些pages。这与操作系统中的置换算法差不多。<br/>
+需要注意的是，</p>
+<h3 id="替换策略重点需要处理问题">替换策略，重点需要处理问题<a aria-hidden="true" tabindex="-1" href="#替换策略重点需要处理问题" class="internal"> §</a></h3>
+<h4 id="缓冲池污染"><a href="./缓冲池污染" class="internal">缓冲池污染</a><a aria-hidden="true" tabindex="-1" href="#缓冲池污染" class="internal"> §</a></h4>
+<p>如果写了一些需要全表扫描的查询语句（比如没有建立合适的索引或者没有<code>WHERE</code>子句的查询）。</p>
+<h4 id="预读"><a href="./预读" class="internal">预读</a><a aria-hidden="true" tabindex="-1" href="#预读" class="internal"> §</a></h4>
+<p>DBMS，会对页进行预读，这样也带来了一个问题，导致加载的页不一定都是被用到。为了区分哪些是热数据。将冷热页进行分离。预读的页，都放在冷数据区即可。</p>
+<h3 id="算法">算法<a aria-hidden="true" tabindex="-1" href="#算法" class="internal"> §</a></h3>
+<h4 id="lru"><a href="./LRU" class="internal">LRU</a><a aria-hidden="true" tabindex="-1" href="#lru" class="internal"> §</a></h4>
+<p>最近最少使用。<br/>
+基本思想就是<strong>追踪最后被访问的时间戳</strong>，我们仅需去看哪个时间戳最老，将其置换出去即可。<br/>
+具体实现方面，操作系统页面置换LRU算法提到了使用栈来解决，当然这里也可以使用队列来实现，如果有人读写了这个page就将其从队列中剔除然后放在尾部，头部的page会被一个个换出。</p>
+<h4 id="clock时钟置换算法近似lru">Clock（时钟置换算法，近似LRU)<a aria-hidden="true" tabindex="-1" href="#clock时钟置换算法近似lru" class="internal"> §</a></h4>
+<p>Clock是LRU的一种近似算法，无需追踪时间戳而是<strong>追踪标志位</strong>.<br/>
+<img src="http://image.clickear.top/20230613184440.png" alt="image.png"/><br/>
+最开始，被换入的内存中的page标志位都是0，一旦被访问了就将其标志位置为1。当需要换出时，就像一个钟表一样顺时针或者逆时针旋转，如果发现指向的这个page标志位为1就将它改为0，然后旋转，发现标志位是0的下一个page，就将其换出。<br/>
+<strong>无法解决</strong><a href="./缓冲池污染" class="internal">缓冲池污染</a>问题</p>
+<h3 id="解决缓冲池污染即进阶的替换策略">解决<a href="./缓冲池污染" class="internal">缓冲池污染</a>,即进阶的替换策略<a aria-hidden="true" tabindex="-1" href="#解决缓冲池污染即进阶的替换策略" class="internal"> §</a></h3>
+<h4 id="lru-k"><a href="./LRU-K" class="internal">LRU-K</a><a aria-hidden="true" tabindex="-1" href="#lru-k" class="internal"> §</a></h4>
+<p>LRU-K 保存每个 page 的最后 K 次访问时间戳，利用这些时间戳来估计它们下次被访问的时间，通常 K 取 1 就能获得很好的效果。<br/>
+<img src="http://image.clickear.top/20230613184610.png" alt="image.png"/><br/>
+<a href="./§-mysql目录" class="internal">mysql</a>的<a href="./bufferpool" class="internal">bufferpool</a>就是使用这种方法</p>
+<h4 id="多缓存池"><a href="./多缓存池" class="internal">多缓存池</a><a aria-hidden="true" tabindex="-1" href="#多缓存池" class="internal"> §</a></h4>
+<p>分散</p>
+<h4 id="优先级提示-priority-hints">优先级提示 Priority Hints<a aria-hidden="true" tabindex="-1" href="#优先级提示-priority-hints" class="internal"> §</a></h4>
+<p>有时候 DBMS 知道每个 page 在查询执行过程中的上下文信息，因此它可以根据这些信息判断一个 page 是否重要。</p>
+<h2 id="脏页回刷">脏页回刷<a aria-hidden="true" tabindex="-1" href="#脏页回刷" class="internal"> §</a></h2>
+<p>移除一个 dirty page 的成本要高于移除一般 page，因为前者需要写 disk，后者可以直接 drop，因此 DBMS 在移除 page 的时候也需要考虑到这部分的影响。除了直接在 Replacement Policies 中考虑，有的 DBMS 使用 <strong>Background Writing</strong> 的方式来处理。它们定期扫描 page table，发现 dirty page 就写入 disk，在 Replacement 发生时就无需考虑脏数据带来的问题。</p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./cmu15445" class="internal">cmu15445</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

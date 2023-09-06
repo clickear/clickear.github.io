@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html><head><title>数据库page</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="数据库page"/><meta property="og:description" content="什么是页💡 页，可以理解为文件系统中的block。作为磁盘和内存之间交互的基本单位。也就说，一次最少从磁盘中读取一页数据，一次也最少把一页内容刷到磁盘中。 为什么需要page呢?💡 其它，这个主要是因为局部性原理中的空间局部性，如果每次加载数据中的tuple,都从文件从读取一个tuple,这样效率会很低，因为磁盘的读写很慢。所以为了充分利用空间局部性(多读点，而不是用多少读多少)，按page的级别进行加载和管理数据。 就比如OS 的文件系统通常将文件切分成 pages 进行管理一样。 有几个不同的 page 概念需要分清楚 Hardware Page：通常大小为 4KB。 OS Page: 通常大小为 4KB Database Page：(1-16KB) 4kB: sqllite, oracle 8KB: sqlserver/postgresql 16kB: mysql 这里涉及到一个问题，比如mysql的page，是16kB，而OS的page是4KB，也就是1个数据库的page的IO操作对应4个OS的page。在mysql页刷入磁盘时，需要进行4次的IO操作。可能会出现，2个OSpage后，操作系统宕机，导致数据库的page不完整。出现了数据的不完整性。为了解决这个问题，mysql使用了DoubleWrite 页的管理 § pages 管理模块需要记录哪些 pages 已经被使用，而哪些 pages 尚未被使用。那么具体如何来记录和管理呢。 Heap File Organization § 无序的页的集合。 支持增加改查 页。 大部分支持遍历。 首先，如果只有tuple都存在单文件。那边有个很简单的方案，每个tuple固定大小。根据偏移量来计算页的offset即可。但是大部分都是在不同文件。所以主要有2种方案: 链表(基本不用） § 维护2个链表，一个free page list ，一个data page list."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="什么是页💡 页，可以理解为文件系统中的block。作为磁盘和内存之间交互的基本单位。也就说，一次最少从磁盘中读取一页数据，一次也最少把一页内容刷到磁盘中。 为什么需要page呢?💡 其它，这个主要是因为局部性原理中的空间局部性，如果每次加载数据中的tuple,都从文件从读取一个tuple,这样效率会很低，因为磁盘的读写很慢。所以为了充分利用空间局部性(多读点，而不是用多少读多少)，按page的级别进行加载和管理数据。 就比如OS 的文件系统通常将文件切分成 pages 进行管理一样。 有几个不同的 page 概念需要分清楚 Hardware Page：通常大小为 4KB。 OS Page: 通常大小为 4KB Database Page：(1-16KB) 4kB: sqllite, oracle 8KB: sqlserver/postgresql 16kB: mysql 这里涉及到一个问题，比如mysql的page，是16kB，而OS的page是4KB，也就是1个数据库的page的IO操作对应4个OS的page。在mysql页刷入磁盘时，需要进行4次的IO操作。可能会出现，2个OSpage后，操作系统宕机，导致数据库的page不完整。出现了数据的不完整性。为了解决这个问题，mysql使用了DoubleWrite 页的管理 § pages 管理模块需要记录哪些 pages 已经被使用，而哪些 pages 尚未被使用。那么具体如何来记录和管理呢。 Heap File Organization § 无序的页的集合。 支持增加改查 页。 大部分支持遍历。 首先，如果只有tuple都存在单文件。那边有个很简单的方案，每个tuple固定大小。根据偏移量来计算页的offset即可。但是大部分都是在不同文件。所以主要有2种方案: 链表(基本不用） § 维护2个链表，一个free page list ，一个data page list."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="数据库page"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#页的管理" data-for="页的管理">页的管理</a></li><li class="depth-1"><a href="#heap-file-organization" data-for="heap-file-organization">Heap File Organization</a></li><li class="depth-0"><a href="#数据页的布局" data-for="数据页的布局">数据页的布局</a></li><li class="depth-1"><a href="#header" data-for="header">header</a></li><li class="depth-1"><a href="#data" data-for="data">data</a></li><li class="depth-0"><a href="#tuple-layout" data-for="tuple-layout">Tuple layout</a></li><li class="depth-0"><a href="#tuple-storage如何使用tuple来表示数据" data-for="tuple-storage如何使用tuple来表示数据">tuple storage：如何使用tuple来表示数据</a></li><li class="depth-1"><a href="#溢出页-overflow-page" data-for="溢出页-overflow-page">溢出页 overflow page</a></li><li class="depth-1"><a href="#数据库的元数据怎么存储-使用系统表" data-for="数据库的元数据怎么存储-使用系统表">数据库的元数据怎么存储? 使用系统表</a></li><li class="depth-0"><a href="#存储模式" data-for="存储模式">存储模式</a></li><li class="depth-1"><a href="#workload" data-for="workload">WorkLoad</a></li><li class="depth-0"><a href="#data-storage-models数据存储模型" data-for="data-storage-models数据存储模型">Data Storage Models（数据存储模型）</a></li><li class="depth-1"><a href="#行存储n-ary-storage-model-nsm" data-for="行存储n-ary-storage-model-nsm">[[行存储]]：N-ary Storage Model (NSM)</a></li><li class="depth-1"><a href="#dsm" data-for="dsm">DSM</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">数据库page</h1><p class="content-meta">Sep 06, 2023, 8 min read</p></div></div><article class="popover-hint"><blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>什么是页💡 </p></div>
+                  
+                </div>
+<p>页，可以理解为文件系统中的block。作为磁盘和内存之间交互的基本单位。也就说，一次最少从磁盘中读取一页数据，一次也最少把一页内容刷到磁盘中。</p>
+</blockquote>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>为什么需要page呢?💡 </p></div>
+                  
+                </div>
+<p>其它，这个主要是因为<a href="./局部性原理" class="internal">局部性原理</a>中的空间局部性，如果每次加载数据中的tuple,都从文件从读取一个tuple,这样效率会很低，因为磁盘的读写很慢。所以为了充分利用空间局部性(多读点，而不是用多少读多少)，按page的级别进行加载和管理数据。</p>
+</blockquote>
+<p>就比如OS 的文件系统通常将文件切分成 pages 进行管理一样。</p>
+<p>有几个不同的 page 概念需要分清楚</p>
+<ul>
+<li>Hardware Page：通常大小为 4KB。</li>
+<li>OS Page: 通常大小为 4KB</li>
+<li>Database Page：(1-16KB) 4kB: sqllite, oracle 8KB: sqlserver/postgresql 16kB: mysql<br/>
+这里涉及到一个问题，比如<a href="./§-mysql目录" class="internal">mysql</a>的page，是16kB，而OS的page是4KB，也就是1个数据库的page的IO操作对应4个OS的page。在mysql页刷入磁盘时，需要进行4次的IO操作。可能会出现，2个OSpage后，操作系统宕机，导致数据库的page不完整。出现了数据的不完整性。为了解决这个问题，mysql使用了<a href="./DoubleWrite" class="internal">DoubleWrite</a></li>
+</ul>
+<h2 id="页的管理">页的管理<a aria-hidden="true" tabindex="-1" href="#页的管理" class="internal"> §</a></h2>
+<p>pages 管理模块需要记录哪些 pages 已经被使用，而哪些 pages 尚未被使用。那么具体如何来记录和管理呢。</p>
+<h3 id="heap-file-organization">Heap File Organization<a aria-hidden="true" tabindex="-1" href="#heap-file-organization" class="internal"> §</a></h3>
+<p>无序的页的集合。<br/>
+支持增加改查 页。 大部分支持遍历。</p>
+<p>首先，如果只有tuple都存在单文件。那边有个很简单的方案，每个tuple固定大小。根据偏移量来计算页的offset即可。但是大部分都是在不同文件。所以主要有2种方案:</p>
+<h4 id="链表基本不用">链表(基本不用）<a aria-hidden="true" tabindex="-1" href="#链表基本不用" class="internal"> §</a></h4>
+<p>维护2个链表，一个free page list ，一个data page list.有点像bufferpool的处理<br/>
+<img src="http://image.clickear.top/20230612222708.png" alt="image.png"/></p>
+<p>改进版本，双向链表<br/>
+<img src="http://image.clickear.top/20230612223254.png" alt="image.png"/></p>
+<h4 id="page-directory页目录标记哪些是没被使用过的"><a href="./page-directory" class="internal">page directory</a>页目录，标记哪些是没被使用过的<a aria-hidden="true" tabindex="-1" href="#page-directory页目录标记哪些是没被使用过的" class="internal"> §</a></h4>
+<p><img src="http://image.clickear.top/20230612223333.png" alt="image.png"/></p>
+<h2 id="数据页的布局">数据页的布局<a aria-hidden="true" tabindex="-1" href="#数据页的布局" class="internal"> §</a></h2>
+<h3 id="header">header<a aria-hidden="true" tabindex="-1" href="#header" class="internal"> §</a></h3>
+<p><img src="http://image.clickear.top/20230612223807.png" alt="image.png"/></p>
+<ul>
+<li>页大小</li>
+<li>校验和 checksum, 用于故障恢复使用，用来判断数据的完整性</li>
+<li>数据库版本号</li>
+<li>事务可见性</li>
+<li>压缩信息</li>
+</ul>
+<h3 id="data">data<a aria-hidden="true" tabindex="-1" href="#data" class="internal"> §</a></h3>
+<p>如何存储数据，主要有2个方案</p>
+<h4 id="tuple-oriented存数据"><a href="./Tuple-oriented" class="internal">Tuple-oriented</a>（存数据）<a aria-hidden="true" tabindex="-1" href="#tuple-oriented存数据" class="internal"> §</a></h4>
+<p><a href="./Tuple-oriented" class="internal">Tuple-oriented</a></p>
+<h4 id="log-structured"><a href="./存日志" class="internal">[Log-structured]</a><a aria-hidden="true" tabindex="-1" href="#log-structured" class="internal"> §</a></h4>
+<p><a href="./Log-structured" class="internal">Log-structured</a></p>
+<h2 id="tuple-layout">Tuple layout<a aria-hidden="true" tabindex="-1" href="#tuple-layout" class="internal"> §</a></h2>
+<p>在 tuple-oriented 的 layout 中，DMBS 如何存储 tuple 本身呢。<br/>
+一般也是 header + attribute data 的方式 .具体的细节有有一些不同。可以参考下 <a href="./mysql行格式" class="internal">mysql行格式</a><br/>
+<img src="http://image.clickear.top/20230612225939.png" alt="image.png"/></p>
+<p>header:</p>
+<ul>
+<li>Visibility Info (concurrency control)：即 tuple 粒度的权限和并发控制</li>
+<li>Bit Map for <strong>NULL</strong> values</li>
+</ul>
+<p>attribute data:<br/>
+<img src="http://image.clickear.top/20230612230016.png" alt="image.png"/><br/>
+在 DBMS 层面上，由于它需要跟踪每一个 tuple，因此通常会给每个 tuple 赋予一个唯一的标识符（record identifier），通常这个标识符由 page_id + offset/slot 组成，有时候也会包含文件信息。这属于 DBMS 实现的细节，虽然它是唯一的，但 DBMS 可能随时修改它，因此 DBMS 上层的应用不应该依赖于它去实现自己的功能。</p>
+<h2 id="tuple-storage如何使用tuple来表示数据">tuple storage：如何使用tuple来表示数据<a aria-hidden="true" tabindex="-1" href="#tuple-storage如何使用tuple来表示数据" class="internal"> §</a></h2>
+<p>本质上，一个tuple就是一串字节序列，DBMS有解码方案去解释这些字节序列。有点像C++，读到了一些字节序列，到底是Long ,还是时间格式，是根据数据类型来区分的。<br/>
+比如，时间类型在底层也是存Long ,但是是指从1970年1月1日起的秒数或者微秒数来处理的。<br/>
+浮点型，使用IEEE754标准，所以会有精度问题，比如 0.1 + 0.2 可能是等于0.2999999。<br/>
+在数据库中，要精确的数据，一般都有具体的实现。如mysql 中的 decimal</p>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="c++" data-theme="default"><code data-language="c++" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">1.  typedef unsigned char NumericDigit;</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">2.  typedef struct {</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">3.  int ndigits; // # of Digits </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">4.  int weight; // Weight of 1st Digit</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">5.  int scale; // Scale Factor 因子</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">6.  int sign; // Positive/Negative/NaN 正负</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">7.  NumericDigit * digits; // Digit Storage</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">8.  } numeric;</span></span></code></pre></div>
+<h3 id="溢出页-overflow-page">溢出页 overflow page<a aria-hidden="true" tabindex="-1" href="#溢出页-overflow-page" class="internal"> §</a></h3>
+<p><img src="http://image.clickear.top/20230612230808.png" alt="image.png"/><br/>
+tuple的数据太大，导致真实数据太少。一般在tuple中，存指针。而真正的数据放在overflow page中。业务上来说，像文件等二进制数据，应该放在专门的存储服务中，而不是放在数据库中。</p>
+<h3 id="数据库的元数据怎么存储-使用系统表">数据库的元数据怎么存储? 使用系统表<a aria-hidden="true" tabindex="-1" href="#数据库的元数据怎么存储-使用系统表" class="internal"> §</a></h3>
+<p>根据 SQL-92 标准，大部分数据库系统通过 INFORMATION_SCHEMA 把元数据暴露出来，数据库来查询这些数据库的元信息，但一般 DBMSs 都会提供更便捷的命令来查询这些信息。 比如mysql中，show tables;等<br/>
+<img src="http://image.clickear.top/20230612231106.png" alt="image.png"/></p>
+<p><img src="http://image.clickear.top/20230612231321.png" alt="image.png"/></p>
+<h2 id="存储模式">存储模式<a aria-hidden="true" tabindex="-1" href="#存储模式" class="internal"> §</a></h2>
+<h3 id="workload">WorkLoad<a aria-hidden="true" tabindex="-1" href="#workload" class="internal"> §</a></h3>
+<p>数据库的应用场景大体可以用两个维度来描述：操作复杂度和读写分布。<br/>
+<img src="http://image.clickear.top/20230612231531.png" alt="image.png"/></p>
+<p><a href="./oltp" class="internal">oltp</a>： OLTP (事务分析处理)场景包含简单的读写语句，且每个语句都只操作数据库中的一小部分数据（常规操作，例如注册用户、添加商品到购物车），对于用户来说不会更新太多数据，一般就是更新自己的账户信息，自己的购物车信息。行存储</p>
+<p><a href="./oltp" class="internal">oltp</a>: OLAP（联机分析处理），OLAP 主要处理复杂的，需要检索大量数据并聚合的操作（有点像数据科学、大数据处理、商务智能），这种场景下不会更新数据。这种操作一般是只读、会读取大量的数据、会扫描整张表。一般都是采用列存储，即一般都是使用<a href="./列族数据库" class="internal">列族数据库</a></p>
+<p><a href="./HTAP" class="internal">HTAP</a>: 混合事务分析处理，包含了OLTP和OLAP，一般中和了2种，都是都无法做到极致。</p>
+<h2 id="data-storage-models数据存储模型">Data Storage Models（数据存储模型）<a aria-hidden="true" tabindex="-1" href="#data-storage-models数据存储模型" class="internal"> §</a></h2>
+<h3 id="行存储n-ary-storage-model-nsm"><a href="./行存储" class="internal">行存储</a>：N-ary Storage Model (NSM)<a aria-hidden="true" tabindex="-1" href="#行存储n-ary-storage-model-nsm" class="internal"> §</a></h3>
+<p><a href="./行存储" class="internal">行存储</a></p>
+<h3 id="dsm">DSM<a aria-hidden="true" tabindex="-1" href="#dsm" class="internal"> §</a></h3>
+<p><a href="./列存储" class="internal">列存储</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./cmu15445" class="internal">cmu15445</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

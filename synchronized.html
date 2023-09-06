@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html><head><title>资料</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="资料"/><meta property="og:description" content="为什么说synchronized是重量级锁？ § 我们知道，cpu会运行在用户态和内核态。如零拷贝就是为了减少在用户态的运行。synchronized效率低， 是因为synchronized是跑在jvm上，需要对操作系统进行申请资源。 在java中很多实现中, 很多都是轻量级锁, 比如JUC中的CAS."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="为什么说synchronized是重量级锁？ § 我们知道，cpu会运行在用户态和内核态。如零拷贝就是为了减少在用户态的运行。synchronized效率低， 是因为synchronized是跑在jvm上，需要对操作系统进行申请资源。 在java中很多实现中, 很多都是轻量级锁, 比如JUC中的CAS."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="synchronized"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-1"><a href="#为什么说synchronized是重量级锁" data-for="为什么说synchronized是重量级锁">为什么说synchronized是重量级锁？</a></li><li class="depth-1"><a href="#锁的对象是什么" data-for="锁的对象是什么">锁的对象是什么？</a></li><li class="depth-1"><a href="#synchronized的实现原理重量级锁的原理" data-for="synchronized的实现原理重量级锁的原理">[[synchronized]]的实现原理(重量级锁的原理)</a></li><li class="depth-1"><a href="#锁升级" data-for="锁升级">锁升级</a></li><li class="depth-2"><a href="#偏向锁仅一个线程对象头存线程id" data-for="偏向锁仅一个线程对象头存线程id">偏向锁(仅一个线程，对象头存线程id)</a></li><li class="depth-2"><a href="#轻量级锁多线程交替进入临界区自旋对象头存lock-record指针" data-for="轻量级锁多线程交替进入临界区自旋对象头存lock-record指针">轻量级锁（多线程交替进入临界区，自旋，对象头存Lock Record指针，）</a></li><li class="depth-2"><a href="#重量级锁多线程存的是monitor的指针" data-for="重量级锁多线程存的是monitor的指针">重量级锁(多线程，存的是Monitor的指针)</a></li><li class="depth-2"><a href="#对比" data-for="对比">对比</a></li><li class="depth-1"><a href="#hashcode哪里去了" data-for="hashcode哪里去了">hashcode哪里去了？</a></li><li class="depth-1"><a href="#wait为什么需要释放锁" data-for="wait为什么需要释放锁">wait为什么需要释放锁？</a></li><li class="depth-1"><a href="#wait和notify存在问题" data-for="wait和notify存在问题">wait和notify存在问题</a></li><li class="depth-0"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">资料</h1><p class="content-meta">Sep 06, 2023, 15 min read</p></div></div><article class="popover-hint"><h2 id="为什么说synchronized是重量级锁">为什么说synchronized是重量级锁？<a aria-hidden="true" tabindex="-1" href="#为什么说synchronized是重量级锁" class="internal"> §</a></h2>
+<p>我们知道，cpu会运行在用户态和内核态。如<a href="./零拷贝" class="internal">零拷贝</a>就是为了减少在用户态的运行。<a href="./synchronized" class="internal">synchronized</a>效率低， 是因为synchronized是跑在jvm上，需要对操作系统进行申请资源。<br/>
+在java中很多实现中, 很多都是轻量级锁, 比如JUC中的CAS. 所谓的轻量级锁和重量级锁的区别是什么呢? 轻量级锁都是在<strong>用户态直接完成</strong>, 不用惊动操作系统, 而重量级锁需要<strong>向操作系统申请</strong>. 在现在synchronized内部的执行过程中, 他会首先使用轻量级锁, 在用户态中完成, 如果完成不了才会去申请重量级锁, 即内核态的锁, 这就是synchronized的<strong>升级</strong>过程</p>
+<blockquote>
+<p>跑在jvm上，会有资源损坏。比如dubbo的<a href="./直接内存" class="internal">堆外内存</a>实现，就是为了减少jvm到c的heap的损坏。</p>
+</blockquote>
+<h2 id="锁的对象是什么">锁的对象是什么？<a aria-hidden="true" tabindex="-1" href="#锁的对象是什么" class="internal"> §</a></h2>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>技巧💡 </p></div>
+                  
+                </div>
+<p>本质上，是给某个对象加了锁。</p>
+</blockquote>
+<ol>
+<li>修饰实例方法，对当前实例对象this加锁</li>
+<li>修饰静态方法，对当前类的Class对象加锁。Class对象，在jvm中也是一个对象。</li>
+<li>修饰代码块，指定加锁对象，对给定对象加锁</li>
+</ol>
+<h2 id="synchronized的实现原理重量级锁的原理"><a href="./synchronized" class="internal">synchronized</a>的实现原理(重量级锁的原理)<a aria-hidden="true" tabindex="-1" href="#synchronized的实现原理重量级锁的原理" class="internal"> §</a></h2>
+<p>在<a href="./对象存储布局" class="internal">对象存储布局</a>中可知，一个对象的内存布局方式。<br/>
+<img src="http://image.clickear.top/20220926104914.png" alt/></p>
+<p>重量级锁也就是通常说synchronized的对象锁，锁标识位为10，其中指针指向的是monitor对象（也称为管程或监视器锁）的起始地址。每个对象都存在着一个 monitor 与之关联。在Java虚拟机(HotSpot)中，monitor是由ObjectMonitor实现的，其主要数据结构如下（位于HotSpot虚拟机源码ObjectMonitor.hpp文件，C++实现的），省略部分属性</p>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="java" data-theme="default"><code data-language="java" data-theme="default"><span data-line> </span>
+<span data-line><span style="color:var(--shiki-token-function);">ObjectMonitor()</span><span style="color:var(--shiki-color-text);"> {  </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">    _count </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">0</span><span style="color:var(--shiki-color-text);">; </span><span style="color:var(--shiki-token-comment);">//记录数  </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">    _recursions </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">0</span><span style="color:var(--shiki-color-text);">; </span><span style="color:var(--shiki-token-comment);">//锁的重入次数  </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">    _owner </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> NULL; </span><span style="color:var(--shiki-token-comment);">//指向持有ObjectMonitor对象的线程  </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">    _WaitSet </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> NULL; </span><span style="color:var(--shiki-token-comment);">//调用wait后，线程会被加入到_WaitSet  </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">    _EntryList </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> NULL ; </span><span style="color:var(--shiki-token-comment);">//等待获取锁的线程，会被加入到该列表  </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">}</span></span></code></pre></div>
+<blockquote class="callout" data-callout="note">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="2" x2="22" y2="6"></line><path d="M7.5 20.5 19 9l-4-4L3.5 16.5 2 22z"></path></svg></div>
+                  <div class="callout-title-inner"><p>笔记 </p></div>
+                  
+                </div>
+<ol>
+<li>可以这么理解，如果是重量级锁，每个对象头指向的是监视器的指针，这个monitor每个对象都有一个与之关联。</li>
+<li>每个monitor，包含了<br/>
+同步队列(entryList)，即是都需要竞争抢资源的线程列表。<br/>
+当前线程，owner<br/>
+等待队列，即调用wait之后，会被放到等待队列。在被调用notify或者notifyAll时，会移动到同步队列中，重新竞争。</li>
+</ol>
+</blockquote>
+<p><img src="http://image.clickear.top/20220926110229.png" alt/></p>
+<h2 id="锁升级">锁升级<a aria-hidden="true" tabindex="-1" href="#锁升级" class="internal"> §</a></h2>
+<p><img src="http://image.clickear.top/20220926115625.png" alt/></p>
+<blockquote class="callout" data-callout="note">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="2" x2="22" y2="6"></line><path d="M7.5 20.5 19 9l-4-4L3.5 16.5 2 22z"></path></svg></div>
+                  <div class="callout-title-inner"><p>笔记 </p></div>
+                  
+                </div>
+<p>synchronized锁升级过程总结：<strong>一句话，就是先自旋，不行再阻塞</strong>。</p>
+<p>实际上是把之前的悲观锁(重量级锁)变成在一定条件下使用偏向锁以及使用轻量级(自旋锁CAS)的形式</p>
+<p>synchronized在修饰方法和代码块在字节码上实现方式有很大差异，但是内部实现还是基于对象头的MarkWord来实现的。 JDK1.6之前synchronized使用的是重量级锁，<strong>JDK1.6之后进行了优化，拥有了无锁->偏向锁->轻量级锁->重量级锁的升级过程</strong>，而不是无论什么情况都使用重量级锁。</p>
+<ul>
+<li><strong>偏向锁</strong>：适用于单线程适用的情况，在不存在锁竞争的时候进入同步方法/代码块则使用偏向锁。</li>
+<li><strong>轻量级锁</strong>：适用于竞争较不激烈的情况(这和乐观锁的使用范围类似)， 存在竞争时升级为轻量级锁，轻量级锁采用的是自旋锁，如果同步方法/代码块执行时间很短的话，采用轻量级锁虽然会占用cpu资源但是相对比使用重量级锁还是更高效。</li>
+<li><strong>重量级锁</strong>：适用于竞争激烈的情况，如果同步方法/代码块执行时间很长，那么使用轻量级锁自旋带来的性能消耗就比使用重量级锁更严重，这时候就需要升级为重量级锁。</li>
+</ul>
+</blockquote>
+<ul>
+<li>偏向锁：Mark Word_存储的是偏向的<strong>线程ID</strong>。有且只有<strong>一个线程</strong>来访问。</li>
+<li>轻量锁：Mark Word_存储的是指向线程中_Lock Record_的指针。<strong>有多个线程A、B来交替访问</strong></li>
+<li>重量：Mark Word_存储的是指向堆中_Monitor_对象的指针。**竞争激烈，多个线程来访问</li>
+</ul>
+<p><img src="http://image.clickear.top/20220926112300.png" alt/></p>
+<p><img src="http://image.clickear.top/20220926112939.png" alt/></p>
+<blockquote class="callout" data-callout="note">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="2" x2="22" y2="6"></line><path d="M7.5 20.5 19 9l-4-4L3.5 16.5 2 22z"></path></svg></div>
+                  <div class="callout-title-inner"><p>升级过程。 </p></div>
+                  
+                </div>
+<ol>
+<li>首次访问，直接使用偏向锁。将线程id保存在对象头中，下次要锁时，直接进行判断。</li>
+<li>如果有其它线程访问，尝试CAS来替换线程id，如果原来线程存在，则升级为轻量级锁。</li>
+</ol>
+</blockquote>
+<h3 id="偏向锁仅一个线程对象头存线程id">偏向锁(仅一个线程，对象头存线程id)<a aria-hidden="true" tabindex="-1" href="#偏向锁仅一个线程对象头存线程id" class="internal"> §</a></h3>
+<ul>
+<li>当一段同步代码一直被同一个线程多次访问，由于只有一个线程那么该线程在后续访问时便会自动获得锁</li>
+<li>同一个老顾客来访，直接老规矩行方便.</li>
+</ul>
+<p>只需要在锁第一次被拥有的时候，记录下偏向线程ID。这样偏向线程就一直持有着锁(后续这个线程进入和退出这段加了同步锁的代码块时，**不需要再次加锁和释放锁。**而是直接比较对象头里面是否存储了指向当前线程的ID(<em>偏向锁</em>))。</p>
+<ul>
+<li><strong>如果相等</strong>表示偏向锁是偏向于当前线程的，就不需要再尝试获得锁了，直到竞争发生才释放锁。以后每次同步，检查锁的偏向线程ID与当前线程ID是否一致，如果一致直接进入同步。无需每次加锁解锁都去CAS更新对象头。<em><strong>如果自始至终使用锁的线程只有一个</strong></em>，很明显偏向锁几乎没有额外开销，性能极高。</li>
+<li><strong>如果不相等</strong>意味着发生了竞争，锁已经不是总是偏向于同一个线程了，这个时候会尝试使用CAS来替换MarkWord里面的线程ID为新的线程ID
+<ul>
+<li><strong>竞争成功</strong>：表示之前的线程不存在了，MarkWord里面的线程ID为新的线程ID，锁不会升级，仍为偏向锁</li>
+<li><strong>竞争失败</strong>：这时候可能需要升级变为轻量级锁，才能保证线程间公平竞争锁。</li>
+</ul>
+</li>
+</ul>
+<h3 id="轻量级锁多线程交替进入临界区自旋对象头存lock-record指针">轻量级锁（多线程交替进入临界区，自旋，对象头存Lock Record指针，）<a aria-hidden="true" tabindex="-1" href="#轻量级锁多线程交替进入临界区自旋对象头存lock-record指针" class="internal"> §</a></h3>
+<p>有线程来参与锁的竞争，但是获取锁的冲突时间极短，<strong>本质就是自旋锁</strong><br/>
+在没有多线程竞争的前提下，<strong>通过CAS减少</strong>重量级锁使用操作系统互斥量产生的性能消耗，<strong>说白了先自旋再阻塞</strong>。</p>
+<p>JVM会为每个线程在当前线程的栈帧中创建用于存储锁记录的空间，官方成为<code>Displaced Mark Word</code>。若一个线程获得锁时发现是轻量级锁，会把锁的MarkWord复制到自己的Displaced Mark Word里面。然后线程尝试用CAS将锁的MarkWord替换为指向锁记录的指针。如果成功，当前线程获得锁，如果失败，表示Mark Word已经被替换成了其他线程的锁记录，说明在与其它线程竞争锁，当前线程就尝试使用自旋来获取锁。</p>
+<ul>
+<li>争夺轻量级锁失败时，自旋尝试抢占锁。</li>
+</ul>
+<h3 id="重量级锁多线程存的是monitor的指针">重量级锁(多线程，存的是Monitor的指针)<a aria-hidden="true" tabindex="-1" href="#重量级锁多线程存的是monitor的指针" class="internal"> §</a></h3>
+<p>Java中synchronizedi的重量级锁，是基于进入和退出Monitor>对象实现的。在编译时会将同步块的开始位置插入monitor enter指令，在结束位置插入monitor exit指令。<br/>
+当线程执行到monitor enter指令时，会尝试获取对象所对应的Monitor所有权，如果获取到了，即获取到了锁，会在Monitor的owner中存放当前线程的id,这样它将处于锁定状态，除非退出同步块，否则其他线程无法获取到这个Monitor。</p>
+<h3 id="对比">对比<a aria-hidden="true" tabindex="-1" href="#对比" class="internal"> §</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="center">锁</th><th align="center">优点</th><th align="center">缺点</th><th align="center">适用场景</th></tr></thead><tbody><tr><td align="center">偏向锁</td><td align="center">加锁和解锁不需要额外的消耗，和执行非同步方法相比仅存在纳秒级的差距</td><td align="center">如果线程间存在锁竞争，会带来额外的锁撤销的消耗</td><td align="center">适用于有一个线程访问同步块场景</td></tr><tr><td align="center">轻量级锁</td><td align="center">竞争的线程不会阻塞，提高了程序的响应速度</td><td align="center">如果始终得不到锁竞争的线程，使用自旋会消耗CPU</td><td align="center">追求响应时间，同步块执行速度非常快</td></tr><tr><td align="center">重量级锁</td><td align="center">线程竞争不使用自旋，不会消耗CPU</td><td align="center">线程阻塞，响应时间缓慢</td><td align="center">追求吞吐量、同步块执行速度较长</td></tr></tbody></table>
+<h2 id="hashcode哪里去了">hashcode哪里去了？<a aria-hidden="true" tabindex="-1" href="#hashcode哪里去了" class="internal"> §</a></h2>
+<blockquote class="callout" data-callout="note">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="2" x2="22" y2="6"></line><path d="M7.5 20.5 19 9l-4-4L3.5 16.5 2 22z"></path></svg></div>
+                  <div class="callout-title-inner"><p>笔记 </p></div>
+                  
+                </div>
+<p>首先，hashcode是在调用hashcode()方法时，才会生成，即惰性生成。而不是在new时，就创建好。</p>
+</blockquote>
+<ul>
+<li><strong>在无锁状态下</strong>，Mark Word中可以存储对象的identity hash code值。当对象的hashCode()方法第一次被调用时，JVM会生成对应的identity hash code值并将该值存储到Mark Word中。</li>
+<li><strong>对于偏向锁</strong>，在线程获取偏向锁时，会用Thread ID和epoch值覆盖identity hash code所在的位置。如果一个对象的hashCode()方法己经被调用过一次之后，这个对象不能被设置偏向锁。因为如果可以的化，那Mark Word中的identity hash code必然会被偏向线程ld给覆盖，这就会造成同一个对象前后两次调用hashCode()方法得到的结果不一致。</li>
+<li><strong>升级为轻量级锁时</strong>，JVM会在当前线程的栈帧中创建一个锁记录(Lock Record)空间，用于存储锁对象的Mark Word拷贝，该拷贝中可以包含identity hash code,所以<strong>轻量级锁可以和identity hash code共存</strong>，哈希码和GC年龄自然保存在此，释放锁后会将这些信息写回到对象头。</li>
+<li><strong>升级为重量级锁后</strong>，Mark Word保存的重量级锁指针代表重量级锁的ObjectMonitor类里有字段记录非加锁状态下的Mark Word,锁释放后也会将信息写回到对象头。</li>
+</ul>
+<p>偏向锁之前，已经调用过hashcode方法，只能升级到 轻量级锁。<br/>
+在已偏向的线程中，调用hashcode方法，会升级成 重量级锁。不知道为什么不是轻量级锁，可能已偏向升级到轻量级成本很高？</p>
+<h2 id="wait为什么需要释放锁">wait为什么需要释放锁？<a aria-hidden="true" tabindex="-1" href="#wait为什么需要释放锁" class="internal"> §</a></h2>
+<p>当线程A调用<a href="./synchronized" class="internal">synchronized</a>方法，锁对象。如果调用wait时，不释放锁，进入阻塞状态的话，其它线程就无法进入到<a href="./synchronized" class="internal">synchronized</a>代码块了，无法调用notify方法，此时线程A无法被唤醒。<br/>
+wait的实现伪代码</p>
+<pre><code>wait(){
+// 释放锁
+// 阻塞，等待被其它线程notify
+// 重新拿锁。
+}
+</code></pre>
+<h2 id="wait和notify存在问题">wait和notify存在问题<a aria-hidden="true" tabindex="-1" href="#wait和notify存在问题" class="internal"> §</a></h2>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="java" data-theme="default"><code data-language="java" data-theme="default"><span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">void</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-function);">enqueue()</span><span style="color:var(--shiki-color-text);">{</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	</span><span style="color:var(--shiki-token-keyword);">synchronized</span><span style="color:var(--shiki-color-text);">(queue){</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		</span><span style="color:var(--shiki-token-keyword);">while</span><span style="color:var(--shiki-color-text);">(</span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">full</span><span style="color:var(--shiki-color-text);">()) </span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">wait</span><span style="color:var(--shiki-color-text);">();</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		</span><span style="color:var(--shiki-token-comment);">// .... 入队列</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		</span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">notify</span><span style="color:var(--shiki-color-text);">();</span><span style="color:var(--shiki-token-comment);">// 通知消费者，队列中有数据</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	}</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">}</span></span>
+<span data-line> </span>
+<span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">void</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-function);">dequeue()</span><span style="color:var(--shiki-color-text);">{</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	</span><span style="color:var(--shiki-token-keyword);">synchronized</span><span style="color:var(--shiki-color-text);">(queue){</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">			</span><span style="color:var(--shiki-token-keyword);">while</span><span style="color:var(--shiki-color-text);">(</span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">empty</span><span style="color:var(--shiki-color-text);">()) </span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">wait</span><span style="color:var(--shiki-color-text);">();</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">			</span><span style="color:var(--shiki-token-comment);">// 。。。。 出队列</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">			</span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">notify</span><span style="color:var(--shiki-color-text);">();</span><span style="color:var(--shiki-token-comment);">// 通知生产者，队列有空位，可以放了。</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	}</span></span>
+<span data-line> </span>
+<span data-line><span style="color:var(--shiki-color-text);">}</span></span></code></pre></div>
+<p>这里有个明显问题，就是wait和notify使用的是同一个对象，无法区分队列满和空2个条件。会导致生产者原本只想通知消费者，但它把其它生产者也通知了。<br/>
+这正是condition要解决的。</p>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="java" data-theme="default"><code data-language="java" data-theme="default"><span data-line> </span>
+<span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">Lock</span><span style="color:var(--shiki-color-text);"> lock </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">new</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-function);">ReentrantLock()</span><span style="color:var(--shiki-color-text);">;</span></span>
+<span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">Condition</span><span style="color:var(--shiki-color-text);"> notEmpty </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">lock</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">newCondition</span><span style="color:var(--shiki-color-text);">();</span></span>
+<span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">Condition</span><span style="color:var(--shiki-color-text);"> notFull </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">lock</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">newCondition</span><span style="color:var(--shiki-color-text);">();</span></span>
+<span data-line> </span>
+<span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">void</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-function);">enqueue()</span><span style="color:var(--shiki-color-text);">{</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	</span><span style="color:var(--shiki-token-constant);">lock</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">lockInterruptibly</span><span style="color:var(--shiki-color-text);">();</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	</span><span style="color:var(--shiki-token-keyword);">while</span><span style="color:var(--shiki-color-text);">(</span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">full</span><span style="color:var(--shiki-color-text);">()){</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		 </span><span style="color:var(--shiki-token-constant);">notFull</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">await</span><span style="color:var(--shiki-color-text);">();</span><span style="color:var(--shiki-token-comment);">// put的时候队列满了。</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	}</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		</span><span style="color:var(--shiki-token-comment);">// .... 入队列</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		</span><span style="color:var(--shiki-token-constant);">notEmpty</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">signal</span><span style="color:var(--shiki-color-text);">();</span><span style="color:var(--shiki-token-comment);">// 通知消费者，队列中有数据</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	}</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">}</span></span>
+<span data-line> </span>
+<span data-line><span style="color:var(--shiki-token-keyword);">public</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">void</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-function);">dequeue()</span><span style="color:var(--shiki-color-text);">{</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	</span><span style="color:var(--shiki-token-keyword);">synchronized</span><span style="color:var(--shiki-color-text);">(queue){</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">			</span><span style="color:var(--shiki-token-keyword);">while</span><span style="color:var(--shiki-color-text);">(</span><span style="color:var(--shiki-token-constant);">queue</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">empty</span><span style="color:var(--shiki-color-text);">()) </span><span style="color:var(--shiki-token-constant);">notEmptry</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">wait</span><span style="color:var(--shiki-color-text);">();</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">			</span><span style="color:var(--shiki-token-comment);">// 。。。。 出队列</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">			</span><span style="color:var(--shiki-token-constant);">notFull</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-function);">signal</span><span style="color:var(--shiki-color-text);">();</span><span style="color:var(--shiki-token-comment);">// 通知生产者，队列有空位，可以放了。</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	}</span></span>
+<span data-line> </span>
+<span data-line><span style="color:var(--shiki-color-text);">}</span></span></code></pre></div>
+<h1 id="资料">资料<a aria-hidden="true" tabindex="-1" href="#资料" class="internal"> §</a></h1>
+<p><a href="https://www.javashitang.com/md/concurrent/Synchronized%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%EF%BC%8C%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86.html" class="external">Synchronized底层实现，锁升级原理 | Java识堂</a><br/>
+<a href="https://xiaoyu72.com/articles/b04bf8ad/" class="external">Synchronized与锁升级 - YuBlog</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./CAS" class="internal">CAS</a></li><li><a href="./synchronized" class="internal">资料</a></li><li><a href="./§-并发" class="internal">§ 并发</a></li><li><a href="./非公平锁" class="internal">非公平锁</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

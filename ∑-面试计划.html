@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html><head><title>∑ 面试计划</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="∑ 面试计划"/><meta property="og:description" content="面试计划 § 当前阶段，以面试为主要目的，并进行知识点梳理和学习。以尚学堂的大厂学院进行整理。 Java-Interview-Advanced: 中华石杉—互联网Java面试训练营 Page not found · GitHub · GitHub) 知乎播放量最多的JVM课程《jvm性能调优+面试+实战》 - 知乎#todo/面试 12丨缓存：数据库成为瓶颈后，动态数据的查询要如何加速？ | JAVA 架构师笔记#todo/continue disruptor#todo/continue tcp三次握手:#todo/continue 技术 § 第一梯队 § § JVM目录 ∑ mysql § mq面试 捞有价值的wiki Redis RPC框架 — § dubbo JUC 中间件 — MQ、 kafka、 zk 系统设计 advanced-java: 😮 Core Interview Questions &amp;amp; Answers For Experienced Java(Backend) Developers | 互联网 Java 工程师进阶知识完全扫盲：涵盖高并发、分布式、高可用、微服务、海量数据处理等领域知识 advanced-java · GitHub 消息队列,redis,es,分库分表、读写分离，设计高并发系统 领域驱动 第二梯队 § 设计模式 框架源码 § 分布式 [ ] 微服务 第三梯队 § 数据结构和算法 监控 第四梯队 § 云原生 大数据与人工智能 — es 加分技术 运维devops k8s、 istio 项目总结 § 待梳理💡 视频知识存备 项目数据 技术数据？qps？ netty 项目 智能设备 端边云一体化平台建设。首先，介绍下，什么是vlog。 上课的精彩视频。即高光时刻。在课后15分钟内，生成vlog，推送给家长进行观看。也提供了直播，直播回放功能。 前置概念: 云端 edge: 主要是下发命令,任务调度。如进行分析任务下发等。作为总控，进行流程运转。 边缘端edge-node: 主要是进行边缘任务执行，如剪切视频，上传视频 总控服务: 进行流程运转，剪辑等 oscar,评分服务: 根据bi的结果，进行加权评分。 montange服务，合成服务。支持分布式合成。 65%观看， 3+， 7+分享。 云端下发任务 —&amp;gt; 边缘端从nvr拉取视频 —&amp;gt; 剪切视频 —&amp;gt; ai进行识别 —&amp;gt; 将识别结果，上报到oscar服务 —&amp;gt; montange服务 总控设计: 架构演进过程: http连接 —&amp;gt; 长连接 netty 执行的过程，无可视化界面。 —&amp;gt; 总控 分析数据量大 —&amp;gt; oscar 分库分表."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="面试计划 § 当前阶段，以面试为主要目的，并进行知识点梳理和学习。以尚学堂的大厂学院进行整理。 Java-Interview-Advanced: 中华石杉—互联网Java面试训练营 Page not found · GitHub · GitHub) 知乎播放量最多的JVM课程《jvm性能调优+面试+实战》 - 知乎#todo/面试 12丨缓存：数据库成为瓶颈后，动态数据的查询要如何加速？ | JAVA 架构师笔记#todo/continue disruptor#todo/continue tcp三次握手:#todo/continue 技术 § 第一梯队 § § JVM目录 ∑ mysql § mq面试 捞有价值的wiki Redis RPC框架 — § dubbo JUC 中间件 — MQ、 kafka、 zk 系统设计 advanced-java: 😮 Core Interview Questions &amp;amp; Answers For Experienced Java(Backend) Developers | 互联网 Java 工程师进阶知识完全扫盲：涵盖高并发、分布式、高可用、微服务、海量数据处理等领域知识 advanced-java · GitHub 消息队列,redis,es,分库分表、读写分离，设计高并发系统 领域驱动 第二梯队 § 设计模式 框架源码 § 分布式 [ ] 微服务 第三梯队 § 数据结构和算法 监控 第四梯队 § 云原生 大数据与人工智能 — es 加分技术 运维devops k8s、 istio 项目总结 § 待梳理💡 视频知识存备 项目数据 技术数据？qps？ netty 项目 智能设备 端边云一体化平台建设。首先，介绍下，什么是vlog。 上课的精彩视频。即高光时刻。在课后15分钟内，生成vlog，推送给家长进行观看。也提供了直播，直播回放功能。 前置概念: 云端 edge: 主要是下发命令,任务调度。如进行分析任务下发等。作为总控，进行流程运转。 边缘端edge-node: 主要是进行边缘任务执行，如剪切视频，上传视频 总控服务: 进行流程运转，剪辑等 oscar,评分服务: 根据bi的结果，进行加权评分。 montange服务，合成服务。支持分布式合成。 65%观看， 3+， 7+分享。 云端下发任务 —&amp;gt; 边缘端从nvr拉取视频 —&amp;gt; 剪切视频 —&amp;gt; ai进行识别 —&amp;gt; 将识别结果，上报到oscar服务 —&amp;gt; montange服务 总控设计: 架构演进过程: http连接 —&amp;gt; 长连接 netty 执行的过程，无可视化界面。 —&amp;gt; 总控 分析数据量大 —&amp;gt; oscar 分库分表."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="∑-面试计划"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#面试计划" data-for="面试计划">面试计划</a></li><li class="depth-1"><a href="#技术" data-for="技术">技术</a></li><li class="depth-0"><a href="#项目总结" data-for="项目总结">项目总结</a></li><li class="depth-0"><a href="#简历编写" data-for="简历编写">简历编写</a></li><li class="depth-0"><a href="#项目管理" data-for="项目管理">项目管理</a></li><li class="depth-0"><a href="#面试记录" data-for="面试记录">面试记录</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">∑ 面试计划</h1><p class="content-meta">Sep 06, 2023, 5 min read</p><ul class="tags"><li><a href="./tags/todo/今天" class="internal tag-link">#todo/今天</a></li><li><a href="./tags/todo/面试" class="internal tag-link">#todo/面试</a></li><li><a href="./tags/todo/continue" class="internal tag-link">#todo/continue</a></li></ul></div></div><article class="popover-hint"><h2 id="面试计划">面试计划<a aria-hidden="true" tabindex="-1" href="#面试计划" class="internal"> §</a></h2>
+<blockquote>
+<p>当前阶段，以面试为主要目的，并进行知识点梳理和学习。以尚学堂的大厂学院进行整理。</p>
+</blockquote>
+<p><a href="https://gitee.com/shishan100/Java-Interview-Advanced/#/shishan100/Java-Interview-Advanced/blob/master/docs/distributed-system/why-dubbo.md" class="external">Java-Interview-Advanced: 中华石杉—互联网Java面试训练营</a></p>
+<p><a href="https://github.com/Snailclimb/JavaGuide" class="external">Page not found · GitHub · GitHub</a>)<br/>
+<a href="https://zhuanlan.zhihu.com/p/444388869" class="external">知乎播放量最多的JVM课程《jvm性能调优+面试+实战》 - 知乎</a><a href="./tags/todo/面试" class="tag-link internal">#todo/面试</a></p>
+<p><a href="https://zq99299.github.io/note-architect/hc/03/01.html" class="external">12丨缓存：数据库成为瓶颈后，动态数据的查询要如何加速？ | JAVA 架构师笔记</a><a href="./tags/todo/continue" class="tag-link internal">#todo/continue</a></p>
+<p>disruptor<a href="./tags/todo/continue" class="tag-link internal">#todo/continue</a><br/>
+tcp三次握手:<a href="./tags/todo/continue" class="tag-link internal">#todo/continue</a></p>
+<h3 id="技术">技术<a aria-hidden="true" tabindex="-1" href="#技术" class="internal"> §</a></h3>
+<h4 id="第一梯队">第一梯队<a aria-hidden="true" tabindex="-1" href="#第一梯队" class="internal"> §</a></h4>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./§-JVM目录" class="internal">§ JVM目录</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./∑-mysql" class="internal">∑ mysql</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./§-mq面试" class="internal">§ mq面试</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> 捞有价值的wiki</li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./Redis" class="internal">Redis</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./RPC框架" class="internal">RPC框架</a> — <a href="./§-dubbo" class="internal">§ dubbo</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./JUC" class="internal">JUC</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./中间件" class="internal">中间件</a> — <a href="./MQ" class="internal">MQ</a>、 <a href="./kafka" class="internal">kafka</a>、 <a href="./zk" class="internal">zk</a></li>
+</ul>
+<hr/>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./系统设计" class="internal">系统设计</a></li>
+</ul>
+<p><a href="https://github.com/doocs/advanced-java" class="external">advanced-java: 😮 Core Interview Questions &amp; Answers For Experienced Java(Backend) Developers | 互联网 Java 工程师进阶知识完全扫盲：涵盖高并发、分布式、高可用、微服务、海量数据处理等领域知识</a></p>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="https://github.com/doocs/advanced-java/tree/main/docs/high-concurrency" class="external">advanced-java · GitHub</a> <a href="./消息队列" class="internal">消息队列</a>,<a href="./redis" class="internal">redis</a>,<a href="./es" class="internal">es</a>,<a href="./分库分表" class="internal">分库分表</a>、<a href="./读写分离" class="internal">读写分离</a>，<a href="./设计高并发系统" class="internal">设计高并发系统</a></li>
+</ul>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./领域驱动" class="internal">领域驱动</a></li>
+</ul>
+<h4 id="第二梯队">第二梯队<a aria-hidden="true" tabindex="-1" href="#第二梯队" class="internal"> §</a></h4>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./设计模式" class="internal">设计模式</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./框架源码" class="internal">框架源码</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./§-分布式" class="internal">§ 分布式</a>
+<ul>
+<li>[ ]</li>
+</ul>
+</li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./微服务" class="internal">微服务</a></li>
+</ul>
+<h4 id="第三梯队">第三梯队<a aria-hidden="true" tabindex="-1" href="#第三梯队" class="internal"> §</a></h4>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./数据结构和算法" class="internal">数据结构和算法</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./监控" class="internal">监控</a></li>
+</ul>
+<h4 id="第四梯队">第四梯队<a aria-hidden="true" tabindex="-1" href="#第四梯队" class="internal"> §</a></h4>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./云原生" class="internal">云原生</a></li>
+<li class="task-list-item"><input type="checkbox" disabled/> <a href="./大数据与人工智能" class="internal">大数据与人工智能</a> — <a href="./es" class="internal">es</a></li>
+</ul>
+<p>加分技术</p>
+<p><a href="./运维devops" class="internal">运维devops</a></p>
+<p><a href="./k8s" class="internal">k8s</a>、 <a href="./istio" class="internal">istio</a></p>
+<h2 id="项目总结">项目总结<a aria-hidden="true" tabindex="-1" href="#项目总结" class="internal"> §</a></h2>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>待梳理💡 </p></div>
+                  
+                </div>
+</blockquote>
+<ul>
+<li><a href="./视频知识" class="internal">视频知识</a>存备</li>
+<li>项目数据</li>
+<li>技术数据？qps？</li>
+<li><a href="./netty" class="internal">netty</a></li>
+</ul>
+<blockquote class="callout" data-callout="info">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+                  <div class="callout-title-inner"><p>项目 </p></div>
+                  
+                </div>
+</blockquote>
+<p>智能设备</p>
+<p>端边云一体化平台建设。首先，介绍下，什么是vlog。 上课的精彩视频。即高光时刻。在课后15分钟内，生成vlog，推送给家长进行观看。也提供了直播，直播回放功能。<br/>
+前置概念:</p>
+<ol>
+<li>云端 edge: 主要是下发命令,任务调度。如进行分析任务下发等。作为总控，进行流程运转。</li>
+<li>边缘端edge-node: 主要是进行边缘任务执行，如剪切视频，上传视频</li>
+<li>总控服务: 进行流程运转，剪辑等</li>
+<li>oscar,评分服务: 根据bi的结果，进行加权评分。</li>
+<li>montange服务，合成服务。支持分布式合成。</li>
+</ol>
+<p>65%观看， 3+， 7+分享。</p>
+<p><img src="http://image.clickear.top/20220914145731.png" alt/></p>
+<p>云端下发任务 —> 边缘端从nvr拉取视频 —> 剪切视频 —> ai进行识别 —> 将识别结果，上报到oscar服务 —> montange服务</p>
+<p><img src="http://image.clickear.top/20220914145639.png" alt/></p>
+<p>总控设计:</p>
+<p>架构演进过程:</p>
+<ol>
+<li>http连接 —> 长连接 netty</li>
+<li>执行的过程，无可视化界面。 —> 总控</li>
+<li>分析数据量大<br/>
+—> oscar 分库分表.<br/>
+—> 评分策略</li>
+</ol>
+<p>痛点:</p>
+<p>执行树的形式，进行页面可视化展示。支持任务节点的暂停、重试等功能。</p>
+<p><img src="http://image.clickear.top/20220914143343.png" alt/></p>
+<ol>
+<li>基于netty的长连接。 定长 + epollo</li>
+<li>ffmpeg的视频处理。</li>
+</ol>
+<blockquote class="callout" data-callout="info">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+                  <div class="callout-title-inner"><p>项目 </p></div>
+                  
+                </div>
+<p>仓储系统(wms)</p>
+</blockquote>
+<ul>
+<li>亮点</li>
+<li>技术难点</li>
+</ul>
+<blockquote class="callout" data-callout="info">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+                  <div class="callout-title-inner"><p>项目 </p></div>
+                  
+                </div>
+<p>工作流</p>
+</blockquote>
+<ul>
+<li>亮点</li>
+<li>技术难点</li>
+</ul>
+<h2 id="简历编写">简历编写<a aria-hidden="true" tabindex="-1" href="#简历编写" class="internal"> §</a></h2>
+<h2 id="项目管理">项目管理<a aria-hidden="true" tabindex="-1" href="#项目管理" class="internal"> §</a></h2>
+<p>技术深度</p>
+<p>技术广度</p>
+<p>项目落地</p>
+<p>50 * 50个教室 * 6 * 60 % = 180 个学生</p>
+<p>脚本片段: 9</p>
+<p>6个摄像头 —> 3个摄像头<br/>
+6 * 5</p>
+<p>单场馆</p>
+<p>50 * 6 * 60% = 180<br/>
+6个摄像头 * 3个</p>
+<p>1个场馆<br/>
+180个学生 * 3个摄像头 * 6 个片段 * 30个数据/每分钟 = 10w</p>
+<h2 id="面试记录">面试记录<a aria-hidden="true" tabindex="-1" href="#面试记录" class="internal"> §</a></h2>
+<p>9.22 19:30 瑞幸二面<br/>
+9.27 10:00 今天国际 一面<br/>
+9.27 15:00 高德 一面<br/>
+9.27 19:30 比升 一面，<br/>
+9.28 11:00 海辰 一面。薪资要求太高挂了<br/>
+9.29 15:00 朗新科技 一面，hr面<br/>
+9.29 17:00 瑞幸咖啡 hr面<br/>
+9.29 17：30 高德二面 挂了。</p>
+<p>头插法还是？<br/>
+redis底层实现。</p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./README" class="internal">README</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

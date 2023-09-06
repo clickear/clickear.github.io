@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html><head><title>三色标记法</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="三色标记法"/><meta property="og:description" content="三色标记法(黑白灰) 根据可达性分析，从GC Roots开始进行遍历访问，按“是否访问过”这个条件标记成以下三种颜色： 黑色：本对象已访问过，而且本对象 引用到 的其他对象 也全部访问过了。 (自己标记完了，自己的孩子（包括多个孩子）也标记完了，都不是垃圾) 灰色：本对象已访问过，但是本对象 引用到 的其他对象 尚未全部访问完。全部访问后，会转换为黑色。(自己标记完了，自己的孩子（包括多个孩子）没有标记) 白色：尚未访问过，对象即为GC Roots 不可达，可以进行回收。 ::多标, 多标记了一些正常节点，实际上是需要回收的 § 即，已经标记好的引用，突然断裂。导致后面的引用链都是垃圾，而没进行回收。产生浮动垃圾 解决方案: 无法处理，等一个轮回处理。不影响结果 :: 漏标，漏标记了一些不正常的节点，实际是不需要回收的e § 技巧💡 原本应该存活的对象标记为已消亡（漏标）这就回带来问题了，一个需要被引用的对象被回收了，那程序返回的结果一定是有问题的 条件: 变成孤立节点，原本的引用端口了。即灰色E断开了G 已经处理过的节点，重新引用。即黑色D重新引用G 转换代码即 var G = objE."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="三色标记法(黑白灰) 根据可达性分析，从GC Roots开始进行遍历访问，按“是否访问过”这个条件标记成以下三种颜色： 黑色：本对象已访问过，而且本对象 引用到 的其他对象 也全部访问过了。 (自己标记完了，自己的孩子（包括多个孩子）也标记完了，都不是垃圾) 灰色：本对象已访问过，但是本对象 引用到 的其他对象 尚未全部访问完。全部访问后，会转换为黑色。(自己标记完了，自己的孩子（包括多个孩子）没有标记) 白色：尚未访问过，对象即为GC Roots 不可达，可以进行回收。 ::多标, 多标记了一些正常节点，实际上是需要回收的 § 即，已经标记好的引用，突然断裂。导致后面的引用链都是垃圾，而没进行回收。产生浮动垃圾 解决方案: 无法处理，等一个轮回处理。不影响结果 :: 漏标，漏标记了一些不正常的节点，实际是不需要回收的e § 技巧💡 原本应该存活的对象标记为已消亡（漏标）这就回带来问题了，一个需要被引用的对象被回收了，那程序返回的结果一定是有问题的 条件: 变成孤立节点，原本的引用端口了。即灰色E断开了G 已经处理过的节点，重新引用。即黑色D重新引用G 转换代码即 var G = objE."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="三色标记法"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#多标-多标记了一些正常节点实际上是需要回收的" data-for="多标-多标记了一些正常节点实际上是需要回收的">::多标, 多标记了一些正常节点，实际上是需要回收的</a></li><li class="depth-0"><a href="#-漏标漏标记了一些不正常的节点实际是不需要回收的e" data-for="-漏标漏标记了一些不正常的节点实际是不需要回收的e">:: 漏标，漏标记了一些不正常的节点，实际是不需要回收的e</a></li><li class="depth-1"><a href="#读写屏障写屏障--satbg1" data-for="读写屏障写屏障--satbg1">[[读写屏障|写屏障]] + SATB([[G1]])</a></li><li class="depth-1"><a href="#读写屏障写屏障--增量更新cms垃圾收集器cms使用" data-for="读写屏障写屏障--增量更新cms垃圾收集器cms使用">[[读写屏障|写屏障]] + 增量更新（[[CMS垃圾收集器|CMS]]使用）</a></li><li class="depth-1"><a href="#读写屏障读屏障--颜色指针-zgc" data-for="读写屏障读屏障--颜色指针-zgc">[[读写屏障|读屏障]] + [[颜色指针]] ([[ZGC]]):</a></li><li class="depth-0"><a href="#与颜色指针的区别" data-for="与颜色指针的区别">与[[颜色指针]]的区别</a></li><li class="depth-0"><a href="#参考资料" data-for="参考资料">参考资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">三色标记法</h1><p class="content-meta">Sep 06, 2023, 5 min read</p></div></div><article class="popover-hint"><blockquote class="callout" data-callout="note">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="2" x2="22" y2="6"></line><path d="M7.5 20.5 19 9l-4-4L3.5 16.5 2 22z"></path></svg></div>
+                  <div class="callout-title-inner"><p>三色标记法(黑白灰) </p></div>
+                  
+                </div>
+<p>根据可达性分析，从GC Roots开始进行遍历访问，按“是否访问过”这个条件标记成以下三种颜色：</p>
+<p><strong><code>黑色</code></strong>：本对象已访问过，而且本对象 引用到 的其他对象 也<code>全部访问过</code>了。 (自己标记完了，自己的孩子（包括多个孩子）也标记完了，都不是垃圾)</p>
+<p><strong><code>灰色</code></strong>：本对象已访问过，但是本对象 引用到 的其他对象 尚<code>未全部访问</code>完。全部访问后，会转换为黑色。(自己标记完了，自己的孩子（包括多个孩子）没有标记)</p>
+<p><strong><code>白色</code></strong>：尚未访问过，对象即为GC Roots 不可达，可以进行回收。<br/>
+<img src="http://image.clickear.top/20210913104833.png" alt/></p>
+</blockquote>
+<h2 id="多标-多标记了一些正常节点实际上是需要回收的">::多标, 多标记了一些正常节点，实际上是需要回收的<a aria-hidden="true" tabindex="-1" href="#多标-多标记了一些正常节点实际上是需要回收的" class="internal"> §</a></h2>
+<p><img src="http://image.clickear.top/20220905142635.png" alt/><br/>
+即，已经标记好的引用，突然断裂。导致后面的引用链都是垃圾，而没进行回收。产生<a href="./浮动垃圾" class="internal">浮动垃圾</a><br/>
+解决方案: 无法处理，等一个轮回处理。不影响结果</p>
+<h2 id="-漏标漏标记了一些不正常的节点实际是不需要回收的e">:: 漏标，漏标记了一些不正常的节点，实际是不需要回收的e<a aria-hidden="true" tabindex="-1" href="#-漏标漏标记了一些不正常的节点实际是不需要回收的e" class="internal"> §</a></h2>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>技巧💡 </p></div>
+                  
+                </div>
+<p>原本应该存活的对象标记为已消亡（<strong>漏标</strong>）这就回带来问题了，一个需要被引用的对象被回收了，那程序返回的结果一定是有问题的</p>
+</blockquote>
+<p><img src="http://image.clickear.top/20220905142704.png" alt/><br/>
+条件:</p>
+<ol>
+<li><em>变成孤立节点</em>，原本的引用端口了。即灰色E断开了G</li>
+<li>已经处理过的节点，重新引用。即黑色D重新引用G<br/>
+转换代码即</li>
+</ol>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="java" data-theme="default"><code data-language="java" data-theme="default"><span data-line><span style="color:var(--shiki-token-keyword);">var</span><span style="color:var(--shiki-color-text);"> G </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">objE</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-constant);">fieldG</span><span style="color:var(--shiki-color-text);">;</span></span>
+<span data-line><span style="color:var(--shiki-token-constant);">objE</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-constant);">fieldG</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">null</span><span style="color:var(--shiki-color-text);">; </span><span style="color:var(--shiki-token-comment);">// 灰色E 断开引用 白色G</span></span>
+<span data-line><span style="color:var(--shiki-token-constant);">objD</span><span style="color:var(--shiki-token-punctuation);">.</span><span style="color:var(--shiki-token-constant);">fieldG</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> G; </span><span style="color:var(--shiki-token-comment);">// 黑色D 引用 白色G</span></span></code></pre></div>
+<p>只要在上面这三步中的任意一步中做一些“手脚”，将对象 G 记录起来，然后作为灰色对象再进行遍历即可。比如放到一个特定的集合，等初始的 GC Roots 遍历完（并发标记），该集合的对象遍历即可（重新标记）<br/>
+<strong><a href="./读写屏障" class="internal">读写屏障</a></strong>，其实就是指在赋值操作前后或者读值时，加入一些处理（可以参考AOP的概念）</p>
+<h3 id="写屏障--satbg1"><a href="./读写屏障" class="internal">写屏障</a> + SATB(<a href="./G1" class="internal">G1</a>)<a aria-hidden="true" tabindex="-1" href="#写屏障--satbg1" class="internal"> §</a></h3>
+<p>当对象 E 的成员变量的引用发生变化时（objE.fieldG = null;），我们可以利用写屏障，将 E 原来成员变量的引用对象 G 记录下来：</p>
+<h3 id="写屏障--增量更新cms使用"><a href="./读写屏障" class="internal">写屏障</a> + 增量更新（<a href="./CMS垃圾收集器" class="internal">CMS</a>使用）<a aria-hidden="true" tabindex="-1" href="#写屏障--增量更新cms使用" class="internal"> §</a></h3>
+<p>当对象 D 的成员变量的引用发生变化时（objD.fieldG = G;），我们可以利用写屏障，将 D 新的成员变量引用对象 G 记录下来。<br/>
+增量更新（Incremental Update）：就是当黑色对象插入新的指向白色对象的引用关系时， 就将这个新插入的引用记录下来，等并发扫描结束之后， 再将这些记录过的引用关系中的黑色对象为根， 重新扫描一次（重新标记阶段）。 这可以简化理解为， <strong>黑色对象一旦新插入了指向白色对象的引用之后， 它就变回灰色对象了</strong></p>
+<h3 id="读屏障--颜色指针-zgc"><a href="./读写屏障" class="internal">读屏障</a> + <a href="./颜色指针" class="internal">颜色指针</a> (<a href="./ZGC" class="internal">ZGC</a>):<a aria-hidden="true" tabindex="-1" href="#读屏障--颜色指针-zgc" class="internal"> §</a></h3>
+<p>因为条件二中【黑色对象重新引用了该白色对象】，重新引用的前提是：得获取到该白色对象，此时已经读屏障就发挥作用了。</p>
+<p>这个动作是不是非常像JDK并发中用到的CAS自旋？读取的值发现已经失效了，需要重新读取。而ZGC这里是之前持有的指针由于GC后失效了，需要通过读屏障修正指针</p>
+<h2 id="与颜色指针的区别">与<a href="./颜色指针" class="internal">颜色指针</a>的区别<a aria-hidden="true" tabindex="-1" href="#与颜色指针的区别" class="internal"> §</a></h2>
+<p>三色标记法，将是否标记为垃圾，放在<strong>对象头</strong>中的<strong>gc</strong>标记中，而颜色指针是放在<strong>对象地址的指针</strong>上。</p>
+<h2 id="参考资料">参考资料<a aria-hidden="true" tabindex="-1" href="#参考资料" class="internal"> §</a></h2>
+<p><a href="https://www.freesion.com/article/21091309007/" class="external">JVM之三色标记法（5） - 灰信网（软件开发博客聚合）</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./CMS垃圾收集器" class="internal">CMS垃圾收集器</a></li><li><a href="./§-JVM目录" class="internal">§ JVM目录</a></li><li><a href="./读写屏障" class="internal">读写屏障</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>

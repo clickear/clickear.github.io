@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html><head><title>§ mq面试</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="§ mq面试"/><meta property="og:description" content="什么是消息队列？（作用） 优点: 异步 削峰 解耦 缺点: 可用性低，要考虑丢失、重复消费等 复杂度高 上下游数据一致性问题 消息队列技术选型？ rabbitmq,社区不活跃 activemq, 社区丰富，吞吐量低。elang语言 rocketmq，阿里捐赠给apache，吞吐量高。topic时，性能不会大幅度下降？ kafka， 基于大数据领域。日志和实时计算用的多。 topic多时，性能差 高可用 存储结构 kafka, 每个partition是一个文件。会造成磁盘竞争IO rocketMq,采用commitlog + comsume queue的方式。相当于commitlog存储全部数据，queue存储偏移量。 数据分片存储 kafka一个topic下面的所有消息都是以partition的方式分布式的存储在多个节点上。即每一个机器，都没有完整的topic数据 一个 Topic 分布在多个Broker 上，一个 Broker 可以配置多个 Topic，它们是多对多的关系。如果某个 Topic 消息量很大，应该给它多配置几个队列，并且尽量多分布在不同 Broker 上，以减轻某个 Broker 的压力 主节点选举 rocketmq，基于raft进行选举，超过一半成功即可。在写数据时，只需一半成功即可。 kafka，是基于zk进行选择的。在写数据时，可配置多少个副本写入成功即算成功 [消息丢失] 生产者: 同步发送，或者分布式事务消息 服务端: 持久化: 同步刷盘策略 主从同步: 同步复制 消费者: ACK确认机制 [重复消费] 分布式锁 数据库唯一索引 消息堆积 优先保证线上，先处理bug，保证消费者没问题 提升消费者能力 多线程并发处理 新增消费节点 如果queue &amp;gt; 消费节点数，增加消费节点 如果queue &amp;lt; 消费节点数， 新增topic，并设置queue大小为消费节点数量 将旧的toppic数据，消费重新发送到新的topic进行消费 批量消费 跳过不重要消息，记录后续处理 优化代码 使用case: 大事务拆成 小事务 + 异步化处理。 omq备货流程优化 异步处理, 工作流发送消息 延迟消息，超时未支付 优化case: 抖音接口限流，导致重试调用失败 多线程调用 增加消费者 如何设计mq 可伸缩性，数据分片存储。broker -&amp;gt; topic -&amp;gt; partition，每个 partition 放一个机器，就存一部分数据 持久化，顺序写。 kafaka, partition写在一个文件中 rocketmq， 元数据都写在commitlog中，queue写偏移量 可用性 leader选举 多副本，主从 #todo/continue 29 从 RocketMQ 学 Netty 网络编程技巧."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="什么是消息队列？（作用） 优点: 异步 削峰 解耦 缺点: 可用性低，要考虑丢失、重复消费等 复杂度高 上下游数据一致性问题 消息队列技术选型？ rabbitmq,社区不活跃 activemq, 社区丰富，吞吐量低。elang语言 rocketmq，阿里捐赠给apache，吞吐量高。topic时，性能不会大幅度下降？ kafka， 基于大数据领域。日志和实时计算用的多。 topic多时，性能差 高可用 存储结构 kafka, 每个partition是一个文件。会造成磁盘竞争IO rocketMq,采用commitlog + comsume queue的方式。相当于commitlog存储全部数据，queue存储偏移量。 数据分片存储 kafka一个topic下面的所有消息都是以partition的方式分布式的存储在多个节点上。即每一个机器，都没有完整的topic数据 一个 Topic 分布在多个Broker 上，一个 Broker 可以配置多个 Topic，它们是多对多的关系。如果某个 Topic 消息量很大，应该给它多配置几个队列，并且尽量多分布在不同 Broker 上，以减轻某个 Broker 的压力 主节点选举 rocketmq，基于raft进行选举，超过一半成功即可。在写数据时，只需一半成功即可。 kafka，是基于zk进行选择的。在写数据时，可配置多少个副本写入成功即算成功 [消息丢失] 生产者: 同步发送，或者分布式事务消息 服务端: 持久化: 同步刷盘策略 主从同步: 同步复制 消费者: ACK确认机制 [重复消费] 分布式锁 数据库唯一索引 消息堆积 优先保证线上，先处理bug，保证消费者没问题 提升消费者能力 多线程并发处理 新增消费节点 如果queue &amp;gt; 消费节点数，增加消费节点 如果queue &amp;lt; 消费节点数， 新增topic，并设置queue大小为消费节点数量 将旧的toppic数据，消费重新发送到新的topic进行消费 批量消费 跳过不重要消息，记录后续处理 优化代码 使用case: 大事务拆成 小事务 + 异步化处理。 omq备货流程优化 异步处理, 工作流发送消息 延迟消息，超时未支付 优化case: 抖音接口限流，导致重试调用失败 多线程调用 增加消费者 如何设计mq 可伸缩性，数据分片存储。broker -&amp;gt; topic -&amp;gt; partition，每个 partition 放一个机器，就存一部分数据 持久化，顺序写。 kafaka, partition写在一个文件中 rocketmq， 元数据都写在commitlog中，queue写偏移量 可用性 leader选举 多副本，主从 #todo/continue 29 从 RocketMQ 学 Netty 网络编程技巧."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="§-mq面试"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">§ mq面试</h1><p class="content-meta">Sep 06, 2023, 4 min read</p><ul class="tags"><li><a href="./tags/todo/continue" class="internal tag-link">#todo/continue</a></li></ul></div></div><article class="popover-hint"><ul>
+<li>什么是消息队列？（作用）</li>
+<li>优点:
+<ul>
+<li><a href="./异步" class="internal">异步</a></li>
+<li><a href="./削峰" class="internal">削峰</a></li>
+<li><a href="./解耦" class="internal">解耦</a></li>
+</ul>
+</li>
+<li>缺点:
+<ul>
+<li>可用性低，要考虑丢失、重复消费等</li>
+<li>复杂度高</li>
+<li>上下游数据一致性问题</li>
+</ul>
+</li>
+<li>消息队列技术选型？
+<ul>
+<li>rabbitmq,社区不活跃</li>
+<li>activemq, 社区丰富，吞吐量低。elang语言</li>
+<li>rocketmq，阿里捐赠给apache，吞吐量高。topic时，性能不会大幅度下降？</li>
+<li>kafka， 基于大数据领域。日志和实时计算用的多。 topic多时，性能差</li>
+</ul>
+</li>
+<li>高可用
+<ul>
+<li>存储结构
+<ul>
+<li><a href="./kafka" class="internal">kafka</a>, 每个partition是一个文件。会造成磁盘竞争IO</li>
+<li>rocketMq,采用commitlog + comsume queue的方式。相当于commitlog存储全部数据，queue存储偏移量。</li>
+</ul>
+</li>
+<li>数据分片存储
+<ul>
+<li>kafka一个topic下面的所有消息都是以partition的方式分布式的存储在多个节点上。即每一个机器，都没有完整的topic数据</li>
+<li>一个 Topic 分布在多个Broker 上，一个 Broker 可以配置多个 Topic，它们是多对多的关系。如果某个 Topic 消息量很大，应该给它多配置几个队列，并且尽量多分布在不同 Broker 上，以减轻某个 Broker 的压力</li>
+</ul>
+</li>
+<li>主节点选举
+<ul>
+<li>rocketmq，基于raft进行选举，超过一半成功即可。在写数据时，只需一半成功即可。</li>
+<li>kafka，是基于zk进行选择的。在写数据时，可配置多少个副本写入成功即算成功</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="./以rocketmq为例" class="internal">[消息丢失]</a>
+<ul>
+<li>生产者: 同步发送，或者分布式事务消息</li>
+<li>服务端:
+<ul>
+<li>持久化: 同步刷盘策略</li>
+<li>主从同步: 同步复制</li>
+</ul>
+</li>
+<li>消费者:
+<ul>
+<li>ACK确认机制</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="./幂等处理" class="internal">[重复消费]</a>
+<ul>
+<li>分布式锁</li>
+<li>数据库唯一索引</li>
+</ul>
+</li>
+<li><a href="./消息堆积" class="internal">消息堆积</a>
+<ul>
+<li>
+<ol>
+<li>优先保证线上，先处理bug，保证消费者没问题</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>提升消费者能力</li>
+</ol>
+<ul>
+<li>多线程并发处理</li>
+<li>新增消费节点
+<ul>
+<li>如果queue > 消费节点数，增加消费节点</li>
+<li>如果queue &lt; 消费节点数，
+<ul>
+<li>新增topic，并设置queue大小为消费节点数量</li>
+<li>将旧的toppic数据，消费重新发送到新的topic进行消费</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>批量消费</li>
+<li>跳过不重要消息，记录后续处理</li>
+<li>优化代码</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用case:
+<ul>
+<li>大事务拆成 小事务 + 异步化处理。 omq备货流程优化</li>
+<li>异步处理, 工作流发送消息</li>
+<li>延迟消息，超时未支付</li>
+</ul>
+</li>
+<li>优化case:
+<ul>
+<li>抖音接口限流，导致重试调用失败
+<ul>
+<li>多线程调用</li>
+<li>增加消费者</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="https://github.com/doocs/advanced-java/blob/main/docs/high-concurrency/mq-design.md" class="external">如何设计mq</a>
+<ul>
+<li>可伸缩性，数据分片存储。broker -> topic -> partition，每个 partition 放一个机器，就存一部分数据</li>
+<li>持久化，顺序写。
+<ul>
+<li>kafaka, partition写在一个文件中</li>
+<li>rocketmq， 元数据都写在commitlog中，queue写偏移量</li>
+</ul>
+</li>
+<li>可用性
+<ul>
+<li>leader选举</li>
+<li>多副本，主从</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><a href="./tags/todo/continue" class="tag-link internal">#todo/continue</a><br/>
+<a href="https://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/RocketMQ%20%E5%AE%9E%E6%88%98%E4%B8%8E%E8%BF%9B%E9%98%B6%EF%BC%88%E5%AE%8C%EF%BC%89/29%20%E4%BB%8E%20RocketMQ%20%E5%AD%A6%20Netty%20%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E6%8A%80%E5%B7%A7.md" class="external">29 从 RocketMQ 学 Netty 网络编程技巧.md</a></p>
+<p><a href="https://blog.openacid.com/algo/paxos/" class="external">可靠分布式系统-paxos的直观解释 - OpenACID Blog</a></p>
+<p><a href="https://blog.csdn.net/prestigeding/article/details/78888290" class="external">源码分析RocketMQ系列索引_中间件兴趣圈的博客-CSDN博客_rocketmq 索引</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="." class="internal">AboutTheGarden</a></li><li><a href="./∑-面试计划" class="internal">∑ 面试计划</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>
