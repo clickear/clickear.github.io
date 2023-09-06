@@ -40,6 +40,8 @@ jobs:
         run: npm ci
       - name: Build Quartz
         run: npx quartz build
+      - name: remove .html 
+        run: rm -rf public/.html
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
