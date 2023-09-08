@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html><head><title>mysql调优</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="mysql调优"/><meta property="og:description" content="优化步骤 § 步骤： 1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来; 2.EXPLAIN+慢SQL分析; 3.SHOW profile,查询SQL在MySQL服务器里面的执行细节和生命周期情况 4.具体优化 explain1 § 语法explain select * from xxl_job_log l where l."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="优化步骤 § 步骤： 1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来; 2.EXPLAIN+慢SQL分析; 3.SHOW profile,查询SQL在MySQL服务器里面的执行细节和生命周期情况 4.具体优化 explain1 § 语法explain select * from xxl_job_log l where l."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="mysql调优"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#优化步骤" data-for="优化步骤">优化步骤</a></li><li class="depth-0"><a href="#explain" data-for="explain">explain</a></li><li class="depth-0"><a href="#type" data-for="type">type</a></li><li class="depth-0"><a href="#extra扩展信息" data-for="extra扩展信息">extra(扩展信息)</a></li><li class="depth-1"><a href="#using-where-有点类型是否服务端过滤" data-for="using-where-有点类型是否服务端过滤">using where (有点类型，是否服务端过滤)</a></li><li class="depth-1"><a href="#using-index" data-for="using-index">using index</a></li><li class="depth-1"><a href="#using-index-using-where" data-for="using-index-using-where">using index; using where</a></li><li class="depth-1"><a href="#using-index-condition" data-for="using-index-condition">using index condition</a></li><li class="depth-0"><a href="#总结" data-for="总结">总结</a></li><li class="depth-0"><a href="#调优案例" data-for="调优案例">调优案例</a></li><li class="depth-1"><a href="#order-by-limit-导致选错最优索引" data-for="order-by-limit-导致选错最优索引">order by limit 导致选错最优索引</a></li><li class="depth-1"><a href="#大分页" data-for="大分页">大分页</a></li><li class="depth-1"><a href="#类型不匹配不走索引" data-for="类型不匹配不走索引">类型不匹配，不走索引</a></li><li class="depth-0"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">mysql调优</h1><p class="content-meta">Sep 08, 2023, 10 min read</p></div></div><article class="popover-hint"><h2 id="优化步骤">优化步骤<a aria-hidden="true" tabindex="-1" href="#优化步骤" class="internal"> §</a></h2>
+<html><head><title>mysql调优</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="mysql调优"/><meta property="og:description" content="优化步骤 § 步骤： 1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来; 2.EXPLAIN+慢SQL分析; 3.SHOW profile,查询SQL在MySQL服务器里面的执行细节和生命周期情况 4.具体优化 explain1 § 语法explain select * from xxl_job_log l where l."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="优化步骤 § 步骤： 1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来; 2.EXPLAIN+慢SQL分析; 3.SHOW profile,查询SQL在MySQL服务器里面的执行细节和生命周期情况 4.具体优化 explain1 § 语法explain select * from xxl_job_log l where l."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="mysql调优"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#优化步骤" data-for="优化步骤">优化步骤</a></li><li class="depth-0"><a href="#explain" data-for="explain">explain</a></li><li class="depth-1"><a href="#访问方法" data-for="访问方法">访问方法</a></li><li class="depth-0"><a href="#type" data-for="type">type</a></li><li class="depth-1"><a href="#system" data-for="system">system</a></li><li class="depth-1"><a href="#const唯一索引或者主键索引某个值" data-for="const唯一索引或者主键索引某个值">const(唯一索引或者主键索引=某个值)</a></li><li class="depth-1"><a href="#eq_ref-和eq类似主要是用于关联查询join" data-for="eq_ref-和eq类似主要是用于关联查询join">eq_ref( 和eq类似，主要是用于关联查询join)</a></li><li class="depth-1"><a href="#ref普通索引某个单独值" data-for="ref普通索引某个单独值">ref(普通索引=某个单独值)</a></li><li class="depth-1"><a href="#ref_is_null与ref类型key1abc-or-key1-is-null" data-for="ref_is_null与ref类型key1abc-or-key1-is-null">ref_is_null(与ref类型，key1='abc' or key1 is null)</a></li><li class="depth-1"><a href="#range范围查询" data-for="range范围查询">range(范围查询)</a></li><li class="depth-1"><a href="#index" data-for="index">index</a></li><li class="depth-1"><a href="#all" data-for="all">all</a></li><li class="depth-0"><a href="#如何推算是否会用到哪些索引" data-for="如何推算是否会用到哪些索引">如何推算是否会用到哪些索引?</a></li><li class="depth-1"><a href="#所有条件都可以走索引" data-for="所有条件都可以走索引">所有条件，都可以走索引</a></li><li class="depth-1"><a href="#有的查询条件无法使用的情况" data-for="有的查询条件无法使用的情况">有的查询条件无法使用的情况</a></li><li class="depth-1"><a href="#复杂搜索条件找出的范围匹配区间" data-for="复杂搜索条件找出的范围匹配区间">复杂搜索条件找出的范围匹配区间</a></li><li class="depth-0"><a href="#extra扩展信息" data-for="extra扩展信息">extra(扩展信息)</a></li><li class="depth-1"><a href="#using-where-有点类型是否服务端过滤" data-for="using-where-有点类型是否服务端过滤">using where (有点类型，是否服务端过滤)</a></li><li class="depth-1"><a href="#using-index" data-for="using-index">using index</a></li><li class="depth-1"><a href="#using-index-using-where" data-for="using-index-using-where">using index; using where</a></li><li class="depth-1"><a href="#using-index-condition" data-for="using-index-condition">using index condition</a></li><li class="depth-0"><a href="#总结" data-for="总结">总结</a></li><li class="depth-0"><a href="#调优案例" data-for="调优案例">调优案例</a></li><li class="depth-1"><a href="#order-by-limit-导致选错最优索引" data-for="order-by-limit-导致选错最优索引">order by limit 导致选错最优索引</a></li><li class="depth-1"><a href="#大分页" data-for="大分页">大分页</a></li><li class="depth-1"><a href="#类型不匹配不走索引" data-for="类型不匹配不走索引">类型不匹配，不走索引</a></li><li class="depth-0"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">mysql调优</h1><p class="content-meta">Sep 08, 2023, 15 min read</p></div></div><article class="popover-hint"><h2 id="优化步骤">优化步骤<a aria-hidden="true" tabindex="-1" href="#优化步骤" class="internal"> §</a></h2>
 <p>步骤：<br/>
 1.开启慢查询日志,设置阈值,比如超过5秒钟的就是慢SQL,并将它抓取出来;<br/>
 2.EXPLAIN+慢SQL分析;<br/>
@@ -8,6 +8,19 @@
 <h2 id="explain1">explain<sup><a href="#user-content-fn-1" id="user-content-fnref-1" data-footnote-ref aria-describedby="footnote-label" class="internal">1</a></sup><a aria-hidden="true" tabindex="-1" href="#explain1" class="internal"> §</a></h2>
 <p>语法explain select * from xxl_job_log l where l.job_id in (select id from xxl_job_info)</p>
 <p><img src="http://image.clickear.top/20220913175031.png" alt/></p>
+<h3 id="访问方法">访问方法<a aria-hidden="true" tabindex="-1" href="#访问方法" class="internal"> §</a></h3>
+<ul>
+<li>使用全表扫描查询：表的每一行记录都进行一次查询</li>
+<li>使用索引进行查询
+<ul>
+<li>针对主键和唯一二级索引</li>
+<li>针对普通二级索引</li>
+<li>索引的范围查询</li>
+<li>直接扫描整个索引</li>
+</ul>
+</li>
+</ul>
+<p>mysql查询语句就是访问方法的类型。同一个语句可能会有不同的路线</p>
 <h2 id="type">type<a aria-hidden="true" tabindex="-1" href="#type" class="internal"> §</a></h2>
 <blockquote class="callout" data-callout="tip">
 <div class="callout-title">
@@ -17,29 +30,61 @@
                 </div>
 <p>system > const > eq_ref > ref > fulltext > ref_or_null > index_merge > unique_subquery > index_subquery > range > index > ALL ）。最少要到range级别</p>
 </blockquote>
-<ol>
-<li>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">CREATE TABLE single_table (</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	id INT NOT NULL AUTO_INCREMENT,</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	key1 VARCHAR(100),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	key2 INT,</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	key3 VARCHAR(100),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	key_part1 VARCHAR(100),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	key_part2 VARCHAR(100),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	key_part3 VARCHAR(100),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	common_field VARCHAR(100),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	PRIMARY KEY (id),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	KEY idx_key1 (key1),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	UNIQUE KEY idx_key2 (key2),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	KEY idx_key3 (key3),</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">	KEY idx_key_part (key_part1,</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		key_part2,</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">		key_part3)) Engine = InnoDB CHARSET = utf8;</span></span></code></pre></div>
+<h3 id="system">system<a aria-hidden="true" tabindex="-1" href="#system" class="internal"> §</a></h3>
 <p>system：表只有一行记录（等于系统表），是 const 类型的特例，平时不会出现。<sup><a href="#user-content-fn-2" id="user-content-fnref-2" data-footnote-ref aria-describedby="footnote-label" class="internal">2</a></sup></p>
-</li>
-<li>
+<h3 id="const唯一索引或者主键索引某个值">const(唯一索引或者主键索引=某个值)<a aria-hidden="true" tabindex="-1" href="#const唯一索引或者主键索引某个值" class="internal"> §</a></h3>
 <p>const：<strong>唯一性索引的等值查找</strong>,表示通过索引一次就找到了，const 用于比较 primary key 或 unique 索引，因为只要匹配一行数据，所以很快，如将主键置于 where 列表中，mysql 就能将该查询转换为一个常量。可以认为是通过唯一性索引<sup><a href="#user-content-fn-3" id="user-content-fnref-3" data-footnote-ref aria-describedby="footnote-label" class="internal">3</a></sup>进行查找。</p>
-</li>
-<li>
-<p>eq_ref：<strong>唯一性索引的等值关联</strong>，唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常见于主键或唯一索引扫描。<sup><a href="#user-content-fn-eq_ref%E5%92%8Cconst%E7%9A%84%E5%8C%BA%E5%88%AB" id="user-content-fnref-eq_ref%E5%92%8Cconst%E7%9A%84%E5%8C%BA%E5%88%AB" data-footnote-ref aria-describedby="footnote-label" class="internal">4</a></sup></p>
-</li>
-<li>
-<p>ref：<strong>非唯一性索引的等值扫描</strong>,非唯一性索引扫描，范围匹配某个单独值得所有行。本质上也是一种索引访问，他返回所有匹配某个单独值的行，然而，它可能也会找到多个符合条件的行，多以他应该属于查找和扫描的混合体</p>
-</li>
-<li>
-<p>range：<strong>范围查找，不指定唯一索引还是普通索引</strong>只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引，一般就是在你的where语句中出现了between、&lt;、>、in等的查询，这种范围扫描索引比全表扫描要好，因为它只需开始于索引的某一点，而结束于另一点，不用扫描全部索引</p>
-</li>
-<li>
-<p>index：Full Index Scan，index于ALL区别为index类型只遍历索引树。通常比ALL快，因为索引文件通常比数据文件小。（也就是说虽然all和index都是读全表，但index是从索引中读取的，而all是从硬盘中读的）</p>
-</li>
-<li>
-<p>ALL：Full Table Scan，将遍历全表找到匹配的行</p>
-</li>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="sql" data-theme="default"><code data-language="sql" data-theme="default"><span data-line><span style="color:var(--shiki-token-keyword);">SELECT</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">*</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">FROM</span><span style="color:var(--shiki-color-text);"> single_table </span><span style="color:var(--shiki-token-keyword);">WHERE</span><span style="color:var(--shiki-color-text);"> id </span><span style="color:var(--shiki-token-keyword);">=</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-constant);">1438</span><span style="color:var(--shiki-color-text);">;</span></span></code></pre></div>
+<p>主键索引<br/>
+<img src="http://image.clickear.top/20230909002505.png" alt="image.png"/><br/>
+唯一索引</p>
+<ol>
+<li>先定位查找id，后<a href="./回表" class="internal">回表</a><br/>
+<img src="http://image.clickear.top/20230909002759.png" alt="image.png"/></li>
 </ol>
+<h3 id="eq_ref-和eq类似主要是用于关联查询join">eq_ref( 和eq类似，主要是用于关联查询join)<a aria-hidden="true" tabindex="-1" href="#eq_ref-和eq类似主要是用于关联查询join" class="internal"> §</a></h3>
+<p>eq_ref：<strong>唯一性索引的等值关联</strong>，唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常见于主键或唯一索引扫描。<sup><a href="#user-content-fn-eq_ref%E5%92%8Cconst%E7%9A%84%E5%8C%BA%E5%88%AB" id="user-content-fnref-eq_ref%E5%92%8Cconst%E7%9A%84%E5%8C%BA%E5%88%AB" data-footnote-ref aria-describedby="footnote-label" class="internal">4</a></sup></p>
+<h3 id="ref普通索引某个单独值">ref(普通索引=某个单独值)<a aria-hidden="true" tabindex="-1" href="#ref普通索引某个单独值" class="internal"> §</a></h3>
+<p>ref：<strong>非唯一性索引的等值扫描</strong>,非唯一性索引扫描，范围匹配某个单独值得所有行。本质上也是一种索引访问，他返回所有匹配某个单独值的行，然而，它可能也会找到多个符合条件的行，多以他应该属于查找和扫描的混合体</p>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_table WHERE key1 = ‘abc’;</span></span></code></pre></div>
+<ul>
+<li>普通二级索引的索引列和常数的等值比较</li>
+<li>普通索引并不会限制记录的唯一性，所以可能会查询到多条，那么他的查询代价取决于这个值到底有多少个记录，然后进行回表</li>
+<li>二级索引如果访问的key1 is null都是ref的级别，也就是查询多个<br/>
+<img src="http://image.clickear.top/20230909003207.png" alt="image.png"/><br/>
+<img src="http://image.clickear.top/20230909003215.png" alt="image.png"/></li>
+</ul>
+<h3 id="ref_is_null与ref类型key1abc-or-key1-is-null">ref_is_null(与ref类型，key1=‘abc’ or key1 is null)<a aria-hidden="true" tabindex="-1" href="#ref_is_null与ref类型key1abc-or-key1-is-null" class="internal"> §</a></h3>
+<ul>
+<li>这种就是等值列+null的查询，也是扫描好几条数据</li>
+</ul>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_demo WHERE key1 = ‘abc’ OR key1 IS NULL;</span></span></code></pre></div>
+<p><img src="http://image.clickear.top/20230909003323.png" alt="image.png"/><br/>
+<img src="http://image.clickear.top/20230909003329.png" alt="image.png"/></p>
+<h3 id="range范围查询">range(范围查询)<a aria-hidden="true" tabindex="-1" href="#range范围查询" class="internal"> §</a></h3>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_table WHERE key2 IN (1438, 6328) OR (key2 >= 38 AND key2 &lt;= 79);</span></span></code></pre></div>
+<p>range：<strong>范围查找，不指定唯一索引还是普通索引</strong>只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引，一般就是在你的where语句中出现了between、&lt;、>、in等的查询，这种范围扫描索引比全表扫描要好，因为它只需开始于索引的某一点，而结束于另一点，不用扫描全部索引</p>
+<h3 id="index">index<a aria-hidden="true" tabindex="-1" href="#index" class="internal"> §</a></h3>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT key_part1, key_part2, key_part3 FROM single_table WHERE key_part2 = ‘abc’;</span></span></code></pre></div>
+<p>index：Full Index Scan，index于ALL区别为index类型只遍历索引树。通常比ALL快，因为索引文件通常比数据文件小。（也就是说虽然all和index都是读全表，但index是从索引中读取的，而all是从硬盘中读的）</p>
+<h3 id="all">all<a aria-hidden="true" tabindex="-1" href="#all" class="internal"> §</a></h3>
+<p>ALL：Full Table Scan，将遍历全表找到匹配的行</p>
 <p>缺点：</p>
 <ul>
 <li>EXPLAIN不会告诉你关于触发器、存储过程的信息或用户自定义函数对查询的影响情况</li>
@@ -48,6 +93,78 @@
 <li>部分统计信息是估算的，并非精确值</li>
 <li>EXPLAIN只能解释SELECT操作，其他操作要重写为SELECT后查看执行计划</li>
 </ul>
+<h2 id="如何推算是否会用到哪些索引">如何推算是否会用到哪些索引?<a aria-hidden="true" tabindex="-1" href="#如何推算是否会用到哪些索引" class="internal"> §</a></h2>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>守则💡 </p></div>
+                  
+                </div>
+<p>and: where expr1 and expr2. 取<strong>交集</strong> 。<br/>
+如where a >100 and a>200 等价于 a>200<br/>
+or: where expr1 or expr2。取<strong>并集</strong>。<br/>
+如where a >100 or a>200 等价于 a>100。这也解释了，为什么很多地方，说只有有or就不走索引。可能是因为 a>100 or b>200。 如果是这种情况，假设a有索引，b没索引。这个等式，等价于 b>200( 扫描行数更多)，即等价于不走索引了。</p>
+<p>exp1 and true —> exp1</p>
+<p>exp1 or true —> true</p>
+<p>exp1 or false —> exp1</p>
+</blockquote>
+<h3 id="所有条件都可以走索引">所有条件，都可以走索引<a aria-hidden="true" tabindex="-1" href="#所有条件都可以走索引" class="internal"> §</a></h3>
+<h4 id="and交集">and(交集)<a aria-hidden="true" tabindex="-1" href="#and交集" class="internal"> §</a></h4>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_table WHERE key2 > 100 AND key2 > 200;</span></span></code></pre></div>
+<p><img src="http://image.clickear.top/20230909004339.png" alt="image.png"/></p>
+<h4 id="or并集">or(并集)<a aria-hidden="true" tabindex="-1" href="#or并集" class="internal"> §</a></h4>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_table WHERE key2 > 100 OR key2 > 200;</span></span></code></pre></div>
+<p><img src="http://image.clickear.top/20230909004347.png" alt="image.png"/></p>
+<h3 id="有的查询条件无法使用的情况">有的查询条件无法使用的情况<a aria-hidden="true" tabindex="-1" href="#有的查询条件无法使用的情况" class="internal"> §</a></h3>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_table WHERE key2 > 100 AND common_field = 'abc';</span></span></code></pre></div>
+<p>索引idx_key2并不包括common_field = ‘abc’;这个条件相当于就是<a href="./回表" class="internal">回表</a>的时候才会去使用，也就是在索引上不会过滤这个条件，他也没办法过滤<br/>
+SELECT * FROM single_table WHERE key2 > 100 AND TRUE;在索引上面这个common_field = ‘abc’;就变成了这个查询，也就是不加以判断。即等价于 key2>100</p>
+<h4 id="不走索引">不走索引<a aria-hidden="true" tabindex="-1" href="#不走索引" class="internal"> §</a></h4>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">SELECT * FROM single_table WHERE key2 > 100 OR common_field = 'abc';</span></span></code></pre></div>
+<ul>
+<li>等价于 key2>100 or true. —> true</li>
+</ul>
+<h3 id="复杂搜索条件找出的范围匹配区间">复杂搜索条件找出的范围匹配区间<a aria-hidden="true" tabindex="-1" href="#复杂搜索条件找出的范围匹配区间" class="internal"> §</a></h3>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);"> SELECT * FROM single_table WHERE (key1 > 'xyz' AND key2 = 748 ) </span></span>
+<span data-line><span style="color:var(--shiki-color-text);"> OR (key1 &lt; 'abc' AND key1 > 'lmn') </span></span>
+<span data-line><span style="color:var(--shiki-color-text);"> OR (key1 LIKE '%suf' AND key1 > 'zzz' AND (key2 &lt; 8000 OR common_field = 'abc'))</span></span></code></pre></div>
+<p>结论: 使用 key1索引<br/>
+<img src="http://image.clickear.top/20230909004853.png" alt="image.png"/></p>
+<p>猜测，可能使用key1或者key2索引。</p>
+<ol>
+<li>假设使用key1索引，则 key2和common_field都是全表扫描。则</li>
+</ol>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">-- 第一个条件</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">key1 > 'xyz' AND key2 = 748 --> key1>'xyz' ADN true --> key1>'xyz'</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">-- 第二个条件</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">(key1 &lt; 'abc' AND key1 > 'lmn') --> 因为没有交集，所以这个 --> false</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">-- 第三个条件</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">(key1 LIKE '%suf' AND key1 > 'zzz' AND (key2 &lt; 8000 OR common_field = 'abc'))</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> key1 LIKE '%suf' AND key1 > 'zzz' AND (true or true)</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> key1 LIKE '%suf' AND key1 > 'zzz'</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> true and key1 > 'zzz'</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> key1 > 'zzz'</span></span>
+<span data-line><span style="color:var(--shiki-color-text);"></span></span>
+<span data-line><span style="color:var(--shiki-color-text);">-- 规整后</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">key1>'xyz' or false or key1 > 'zzz'</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> key1>'xyz' or key1 > 'zzz'</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> key1>'xyz'</span></span></code></pre></div>
+<p>所以，最后的扫描区间为 xyz —> 正无穷</p>
+<ol start="2">
+<li>假设使用key2作为索引，则key1和common_field都是全表扫描。</li>
+</ol>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="mysql" data-theme="default"><code data-language="mysql" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">-- 第一个条件</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">(key1 > 'xyz' AND key2 = 748 ) --> true and key2 = 748 --> </span></span>
+<span data-line><span style="color:var(--shiki-color-text);">-- 第二个条件</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">(key1 &lt; 'abc' AND key1 > 'lmn') --> true and true --> true</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">-- 第三个条件</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">(key1 LIKE '%suf' AND key1 > 'zzz' AND (key2 &lt; 8000 OR common_field = 'abc'))</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> true and true and (key2 &lt; 8000 or true)</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> true and true and true</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">--> true</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">-- 规整后</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">key2 = 748 or true or true --> true</span></span></code></pre></div>
+<p>这意味着，如果使用key2作为索引，需要进行扫描区间，为负无穷到正无穷。并且还要进行回表获取其他字段信息。得不偿丧。</p>
 <h2 id="extra扩展信息">extra(扩展信息)<a aria-hidden="true" tabindex="-1" href="#extra扩展信息" class="internal"> §</a></h2>
 <div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="sql" data-theme="default"><code data-language="sql" data-theme="default"><span data-line><span style="color:var(--shiki-token-keyword);">CREATE</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">TABLE</span><span style="color:var(--shiki-color-text);"> `</span><span style="color:var(--shiki-token-function);">user</span><span style="color:var(--shiki-color-text);">` (</span></span>
 <span data-line><span style="color:var(--shiki-color-text);">  </span><span style="color:var(--shiki-token-string-expression);">`id`</span><span style="color:var(--shiki-color-text);"> </span><span style="color:var(--shiki-token-keyword);">bigint</span><span style="color:var(--shiki-color-text);">(</span><span style="color:var(--shiki-token-constant);">20</span><span style="color:var(--shiki-color-text);">) unsigned </span><span style="color:var(--shiki-token-keyword);">NOT NULL</span><span style="color:var(--shiki-color-text);"> AUTO_INCREMENT COMMENT </span><span style="color:var(--shiki-token-string-expression);">'主键'</span><span style="color:var(--shiki-color-text);">,</span></span>
@@ -138,6 +255,7 @@
 <h2 id="资料">资料<a aria-hidden="true" tabindex="-1" href="#资料" class="internal"> §</a></h2>
 <p><a href="https://juejin.cn/post/6850037271233331208" class="external">MySQL 三万字精华总结 + 面试100 问，和面试官扯皮绰绰有余（收藏系列） - 掘金</a></p>
 <p><a href="https://www.jianshu.com/p/89ec04641e72" class="external">SQL中的where条件，在数据库中提取与应用浅析</a></p>
+<p><a href="https://blog.csdn.net/m0_46388866/article/details/121090089" class="external">《MySQL是怎么运行的：从根儿上理解MySQL》(8-10)学习总结_从根上理解mysql第八章_月亮的-影子的博客-CSDN博客</a></p>
 <section data-footnotes class="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes<a aria-hidden="true" tabindex="-1" href="#footnote-label" class="internal"> §</a></h2>
 <ol>
 <li id="user-content-fn-1">
