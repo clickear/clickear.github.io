@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html><head><title>mysql列数和行大小限制</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="mysql列数和行大小限制"/><meta property="og:description" content="一：引言 § 1118 - Row size too large. The maximum row size for the used table type, not counting BLOBs, is 65535. This includes storage overhead, check the manual."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="一：引言 § 1118 - Row size too large. The maximum row size for the used table type, not counting BLOBs, is 65535. This includes storage overhead, check the manual."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="mysql列数和行大小限制"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#一引言" data-for="一引言">一：引言</a></li><li class="depth-0"><a href="#二列数限制" data-for="二列数限制">二：列数限制</a></li><li class="depth-0"><a href="#二行大小限制" data-for="二行大小限制">二：行大小限制</a></li><li class="depth-0"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">mysql列数和行大小限制</h1><p class="content-meta">Sep 08, 2023, 9 min read</p></div></div><article class="popover-hint"><h2 id="一引言">一：引言<a aria-hidden="true" tabindex="-1" href="#一引言" class="internal"> §</a></h2>
+<blockquote>
+<p>　　<strong>1118 - Row size too large. The maximum row size for the used table type, not counting BLOBs, is 65535. This includes storage overhead, check the manual. You have to change some columns to TEXT or BLOBs</strong><br/>
+<strong>翻译：1118 -行太大。所用表类型的最大行大小(不包括BLOBs)是65535。这包括存储开销，请查看手册。您必须将一些列更改为TEXT类型或BLOBs类型</strong></p>
+<p>　　<strong>这个错误我相信大家都遇到过，当数据库里面的字段特别多且每个字段占的存在范围字节也特别大就会有可能出现当前错误，主要原因是行大小超过了65535个字节</strong></p>
+</blockquote>
+<h2 id="二列数限制">二：列数限制<a aria-hidden="true" tabindex="-1" href="#二列数限制" class="internal"> §</a></h2>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>技巧💡 </p></div>
+                  
+                </div>
+<p>简单来说，mysql规定是4096列，但是依赖存储引擎(innodb 1017列)、行大小限制(比如行大小到了限制，但是列没到)等。</p>
+</blockquote>
+<p>MySQL的每个表有<strong>4096</strong>列的硬限制，但给定表的有效最大值可能更少。确切的列限制取决于几个因素：<br/>
+①：表的最大行大小约束列的数量（可能还有大小），因为所有列的总长度不能超过此大小。<br/>
+— 说明：可能列没达到最大，但行大小已经提前限制了表继续创建字段了<br/>
+<strong>②：各个列的存储要求限制了给定最大行大小内的列数。某些数据类型的存储要求取决于存储引擎、存储格式和字符集等因素。<br/>
+③：存储引擎可能会施加限制表列计数的其他限制。例如InnoDB每个表的限制为1017列。</strong></p>
+<h2 id="二行大小限制">二：行大小限制<a aria-hidden="true" tabindex="-1" href="#二行大小限制" class="internal"> §</a></h2>
+<p>**①：MySQL表具有65535字节的最大行大小限制，即使存储引擎能够支持更大的行也是如此。<br/>
+在MySQL的设定中单行数据最大能存储65535byte的数据(注意是byte，而不是字符)。<br/>
+②：对于默认的16KB InnoDB页大小，最大行大小略小于8KB 。对于64KB页，最大行大小略小于16KB。 如果包含可变长度列(例如：text)的InnoDB行超过最大行大小，InnoDB选择可变长度列进行页外存储。 主要是说明，<strong>一个数据页，至少会有2行记录。</strong>。如果超过一半，则会变成溢出页。</p>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>行最大字节数为什么是65535？💡 </p></div>
+                  
+                </div>
+<p>65535是mysql单行的最大长度（不包含blob和text等类型的情况下）<br/>
+mysql表里单行中的<strong>所有列加起来</strong>（不考虑其他隐藏列和记录头信息） ，占用的最大长度是65535个字节.所以字节数len(content) + bitmap(isNull) + content。<br/>
+如果还有int的列，那它占用4个字节，bigint占用8个字节，字段越多，留给单个varchar列的空间就越少</p>
+</blockquote>
+<p><img src="http://image.clickear.top/20230614224937.png" alt="image.png"/></p>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>varchar(M)占用的字节数怎么计算？💡 </p></div>
+                  
+                </div>
+<p>首先，要明确几个概念。 varchar(M)中的M,是指M个字符。而不是字节。所以M个字符对应的字节与字符集有关。<br/>
+W: 即假设某个字符集最多需要W字节来表示一个字符。<br/>
+<code>utf8mb4</code>字符集中的<code>W</code>就是<code>4</code><br/>
+<code>utf8</code>字符集中<code>W</code>就是<code>3</code><br/>
+<code>gbk</code>字符集中的<code>W</code>就是<code>2</code><br/>
+<code>ascii</code>字符集中的<code>W</code>就是<code>1</code>。<br/>
+M: varchar(M)中的M,即 M个字符。那么M个字符，如果都填充满，占用的字节是 M*W<br/>
+L: 变长字段真实的存储字符串占用的字节数。明显 L &lt;= W*M</p>
+</blockquote>
+<p>首先，现在我们知道，记录的额外信息，是紧凑的，没有额外的分隔符，那我们怎么知道，第一个字节是哪个字段的长度呢？又怎么确定，这个列是1个字节还是2个字节？这里就涉及到尽可能较少占用空间。</p>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>为什么前缀长度，最大用2个字节💡 </p></div>
+                  
+                </div>
+<p>为什么长度前缀 1 或 2 个字节就够用了呢, 因为 2 个字节的话, 2^16 = 65536, 这已经<strong>超过 mysql 行最大字节数 65535 的限制了</strong>, 所以 1 到 2 个字节就够用了。</p>
+</blockquote>
+<p>那如果确定1个字节还是2个字节来表示某个变长列的长度呢？这里定义了一套规则，目的了尽可能减少占用空间。</p>
+<p>首先，强调一点，为了减少占用空间，我们要<strong>充分利用表结构</strong>。比如表定义已经明确该列固定长度是20了，那么我们就不用每行都去存储这个长度了。(<a href="./REDUNDANT" class="internal">REDUNDANT</a>就不够智能，后续说明。)</p>
+<p>我们知道，1个字节，可以存储的大小为 2^8 = 256，可以存储数据到255。2^16 = 65536,可以存储到65535的大小。</p>
+<ol>
+<li>很容易想到，先看表结构，如果表结构定义即(M × W)&lt;=255，那么直接用1个字节来存储。因为实际存储长度最大，也就是255个字节。</li>
+<li>如果表结构定义， >255呢？
+<ol>
+<li>粗暴的做法，是直接用2个字节。但是这个还有优化空间吗？</li>
+<li>更精细化的，
+<ol>
+<li>如果实际存储L &lt;= 127,那么我们就只定义1个字节就好</li>
+<li>如果实际存储L >=127, 那么我们就使用2个字节。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>这里为什么是判断L&lt;=127呢?💡 </p></div>
+                  
+                </div>
+<p>这是因为，我们会将第一个字节的首位来区分，是1个字节还是2个字节。 如果高位是1，就代表这个变长的长度是2个字节。 2^7=128.正好存储的极限是127.</p>
+</blockquote>
+<p>总结下这个规则:</p>
+<ol>
+<li>先看表结构定义， MxW &lt;=255.直接用1个字节来存储。</li>
+<li>表结构定义(MxW >255)，那么判断最高位是0还是1，如果是1，代表是2个字节来存储数据。</li>
+</ol>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>疑问💡 </p></div>
+                  
+                </div>
+<p>这里还有个有意思的优化，mysql在存储变长字段长度的顺序，是逆序的，并不是按照字段的顺序。主要是为了尽可能使用到缓存。这里我不是很理解，这整个不是都加载到内存了吗？有什么区别吗？</p>
+</blockquote>
+<blockquote class="callout" data-callout="example">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
+                  <div class="callout-title-inner"><p>varchar(M) 能存多少个字符，为什么提示最大16383？ （utf-8mb4字符集，最大占4个字节） </p></div>
+                  
+                </div>
+<p>要求出这个M，首先不考虑其他列的情况，很明显，这里肯定能达到2个字节。按上限来计算。即M x W >255.<br/>
+（65535 - 2 ）/4 = 16383.75.<br/>
+65535，是每个行的上限， [^1]<br/>
+这里-2，是因为varchar 的变长长度，存储2个字节。<br/>
+除4,是因为真实占用的字符M, 即每个字符要占用4个字节。所以最大16383个字节。<br/>
+当然，这里只是说明了只有1列，没有NULL值等情况。而且也不考虑内部碎片等问题。</p>
+</blockquote>
+<h2 id="资料">资料<a aria-hidden="true" tabindex="-1" href="#资料" class="internal"> §</a></h2>
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/column-count-limit.html" class="external">MySQL :: MySQL 8.0 Reference Manual :: 8.4.7 Limits on Table Column Count and Row Size</a></p>
+<p><a href="https://www.cnblogs.com/antLaddie/p/16927567.html" class="external">MySQL表列数和行大小限制 - 蚂蚁小哥 - 博客园</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./mysql行格式" class="internal">mysql行格式</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>
