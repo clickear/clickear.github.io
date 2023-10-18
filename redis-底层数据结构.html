@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html><head><title>redis-底层数据结构</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="redis-底层数据结构"/><meta property="og:description" content="#redis/数据结构#redis/源码 redis-底层数据结构 § redis关键结构 § 一般情况下，dictEntry的value，是redisObject 数据类型与底层数据结构的关系 § ^frame=3EEHNlLLgI9kw1Y0YbY0n String § sds 字符串对象的编码可以是int，raw或者embstr。 int 编码：保存的是可以用 long 类型表示的整数值。 embstr 编码：保存长度小于44字节的字符串（redis3."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="#redis/数据结构#redis/源码 redis-底层数据结构 § redis关键结构 § 一般情况下，dictEntry的value，是redisObject 数据类型与底层数据结构的关系 § ^frame=3EEHNlLLgI9kw1Y0YbY0n String § sds 字符串对象的编码可以是int，raw或者embstr。 int 编码：保存的是可以用 long 类型表示的整数值。 embstr 编码：保存长度小于44字节的字符串（redis3."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="redis-底层数据结构"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#redis-底层数据结构" data-for="redis-底层数据结构">redis-底层数据结构</a></li><li class="depth-0"><a href="#redis关键结构" data-for="redis关键结构">redis关键结构</a></li><li class="depth-0"><a href="#数据类型与底层数据结构的关系" data-for="数据类型与底层数据结构的关系">数据类型与底层数据结构的关系</a></li><li class="depth-0"><a href="#string" data-for="string">String</a></li><li class="depth-1"><a href="#编码转换条件" data-for="编码转换条件">编码转换条件</a></li><li class="depth-0"><a href="#list" data-for="list">List</a></li><li class="depth-0"><a href="#hash" data-for="hash">Hash</a></li><li class="depth-1"><a href="#转换条件" data-for="转换条件">转换条件</a></li><li class="depth-0"><a href="#set" data-for="set">Set</a></li><li class="depth-1"><a href="#编码转换条件-1" data-for="编码转换条件-1">编码转换条件</a></li><li class="depth-0"><a href="#zset" data-for="zset">Zset</a></li><li class="depth-1"><a href="#编码转换" data-for="编码转换">编码转换</a></li><li class="depth-0"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">redis-底层数据结构</h1><p class="content-meta">Oct 18, 2023, 5 min read</p><ul class="tags"><li><a href="./tags/redis/数据结构" class="internal tag-link">#redis/数据结构</a></li><li><a href="./tags/redis/源码" class="internal tag-link">#redis/源码</a></li></ul></div></div><article class="popover-hint"><p><a href="./tags/redis/数据结构" class="tag-link internal">#redis/数据结构</a><a href="./tags/redis/源码" class="tag-link internal">#redis/源码</a></p>
+<h2 id="redis-底层数据结构">redis-底层数据结构<a aria-hidden="true" tabindex="-1" href="#redis-底层数据结构" class="internal"> §</a></h2>
+<h2 id="redis关键结构">redis关键结构<a aria-hidden="true" tabindex="-1" href="#redis关键结构" class="internal"> §</a></h2>
+<p><img src="http://image.clickear.top/20231018180138.png" alt="image.png"/></p>
+<p>一般情况下，dictEntry的value，是<a href="./redisObject" class="internal">redisObject</a></p>
+<h2 id="数据类型与底层数据结构的关系">数据类型与底层数据结构的关系<a aria-hidden="true" tabindex="-1" href="#数据类型与底层数据结构的关系" class="internal"> §</a></h2>
+<p><a href="./Extras/Draws/redis-数据类型#frame3eehnlllgi9kw1y0yby0n" class="internal">^frame=3EEHNlLLgI9kw1Y0YbY0n</a><br/>
+<img src="http://image.clickear.top/20231018185127.png" alt="image.png"/></p>
+<h2 id="string">String<a aria-hidden="true" tabindex="-1" href="#string" class="internal"> §</a></h2>
+<p><a href="./sds" class="internal">sds</a><br/>
+字符串对象的编码可以是int，raw或者embstr。</p>
+<ul>
+<li><code>int 编码</code>：保存的是可以用 long 类型表示的整数值。</li>
+<li><code>embstr 编码</code>：保存长度小于44字节的字符串（redis3.2版本之前是39字节，之后是44字节）。</li>
+<li><code>raw 编码</code>：保存长度大于44字节的字符串（redis3.2版本之前是39字节，之后是44字节）。</li>
+</ul>
+<p><img src="http://image.clickear.top/20231018190953.png" alt="image.png"/></p>
+<hr/>
+<h3 id="编码转换条件">编码转换条件<a aria-hidden="true" tabindex="-1" href="#编码转换条件" class="internal"> §</a></h3>
+<p>当 int 编码保存的值不再是整数，或大小超过了long的范围时，自动转化为raw。</p>
+<p>对于 embstr 编码，由于 Redis 没有对其编写任何的修改程序（embstr 是只读的），在对embstr对象进行修改时，都会先转化为raw再进行修改，因此，只要是修改embstr对象，修改后的对象一定是raw的，无论是否达到了44个字节</p>
+<h2 id="list">List<a aria-hidden="true" tabindex="-1" href="#list" class="internal"> §</a></h2>
+<p><a href="./ziplist" class="internal">ziplist</a> —> quicklist —> listpack</p>
+<hr/>
+<h2 id="hash">Hash<a aria-hidden="true" tabindex="-1" href="#hash" class="internal"> §</a></h2>
+<p>哈希对象的编码可以是 <a href="./ziplist" class="internal">ziplist</a> 或者 <a href="./hashtable" class="internal">hashtable</a>；对应的底层实现有两种, 一种是ziplist, 一种是dict。当采用HT编码, 即使用dict作为哈希对象的底层数据结构时, 键与值均是以sds的形式存储的.<br/>
+<img src="http://image.clickear.top/20231018190036.png" alt="image.png"/></p>
+<div data-rehype-pretty-code-fragment><pre style="background-color:var(--shiki-color-background);" tabindex="0" data-language="举例说明" data-theme="default"><code data-language="举例说明" data-theme="default"><span data-line><span style="color:var(--shiki-color-text);">hset profile name &quot;Tom&quot;</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">hset profile age 25</span></span>
+<span data-line><span style="color:var(--shiki-color-text);">hset profile career &quot;Programmer&quot;</span></span></code></pre></div>
+<p>使用ziplist的存储<br/>
+<img src="http://image.clickear.top/20231018190206.png" alt="image.png"/></p>
+<p>使用hashtable的存储<br/>
+<img src="http://image.clickear.top/20231018190221.png" alt="image.png"/></p>
+<h3 id="转换条件">转换条件<a aria-hidden="true" tabindex="-1" href="#转换条件" class="internal"> §</a></h3>
+<p>1、列表保存元素个数小于512个</p>
+<p>2、每个元素长度小于64字节</p>
+<p>不能满足这两个条件的时候使用 hashtable 编码。以上两个条件也可以通过Redis配置文件<code>zset-max-ziplist-entries</code> 选项和 <code>zset-max-ziplist-value</code> 进行修改。</p>
+<h2 id="set">Set<a aria-hidden="true" tabindex="-1" href="#set" class="internal"> §</a></h2>
+<p><a href="./intset" class="internal">intset</a>和<a href="./hashtable" class="internal">hashtable</a><br/>
+集合对象的编码可以是 intset 或者 hashtable; 底层实现有两种, 分别是intset和dict。 显然当使用intset作为底层实现的数据结构时, 集合中存储的只能是数值数据, 且必须是整数; 而当使用dict作为集合对象的底层实现时, 是将数据全部存储于dict的键中, 值字段闲置不用.</p>
+<p><img src="http://image.clickear.top/20231018190331.png" alt="image.png"/></p>
+<pre><code>SADD numbers 1 3 5
+</code></pre>
+<p><img src="http://image.clickear.top/20231018190443.png" alt="image.png"/></p>
+<pre><code>SADD Dfruits &quot;apple&quot; &quot;banana&quot; &quot;cherry&quot;
+</code></pre>
+<p><img src="http://image.clickear.top/20231018190503.png" alt="image.png"/></p>
+<hr/>
+<h3 id="编码转换条件-1">编码转换条件<a aria-hidden="true" tabindex="-1" href="#编码转换条件-1" class="internal"> §</a></h3>
+<p>当集合同时满足以下两个条件时，使用 intset 编码：</p>
+<p>1、集合对象中所有元素都是整数</p>
+<p>2、集合对象所有元素数量不超过512</p>
+<p>不能满足这两个条件的就使用 hashtable 编码</p>
+<h2 id="zset">Zset<a aria-hidden="true" tabindex="-1" href="#zset" class="internal"> §</a></h2>
+<p><a href="./ziplist" class="internal">ziplist</a> 或者 skiplist</p>
+<p><img src="http://image.clickear.top/20231018190634.png" alt="image.png"/></p>
+<p><img src="http://image.clickear.top/20231018190656.png" alt="image.png"/><br/>
+实有序集合单独使用字典或跳跃表其中一种数据结构都可以实现，但是这里使用两种数据结构组合起来，原因是假如我们单独使用 字典，虽然能以 O(1) 的时间复杂度查找成员的分值，但是因为字典是以无序的方式来保存集合元素，所以每次进行范围操作的时候都要进行排序；假如我们单独使用跳跃表来实现，虽然能执行范围操作，但是查找操作有 O(1)的复杂度变为了O(logN)。因此Redis使用了两种数据结构来共同实现有序集合</p>
+<h3 id="编码转换">编码转换<a aria-hidden="true" tabindex="-1" href="#编码转换" class="internal"> §</a></h3>
+<p>当有序集合对象同时满足以下两个条件时，对象使用 ziplist 编码：</p>
+<p>1、保存的元素数量小于128；</p>
+<p>2、保存的所有元素长度都小于64字节。</p>
+<p>不能满足上面两个条件的使用 skiplist 编码。以上两个条件也可以通过Redis配置文件<code>zset-max-ziplist-entries</code> 选项和 <code>zset-max-ziplist-value</code> 进行修改。</p>
+<h2 id="资料">资料<a aria-hidden="true" tabindex="-1" href="#资料" class="internal"> §</a></h2>
+<p><a href="https://pdai.tech/md/db/nosql-redis/db-redis-data-type-enc.html" class="external">Redis进阶 - 数据结构：redis对象与编码(底层结构)对应关系详解 | Java 全栈知识体系</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./redis" class="internal">redis</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>
