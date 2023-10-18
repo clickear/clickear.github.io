@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html><head><title>ziplist</title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta property="og:title" content="ziplist"/><meta property="og:description" content="#redis/数据结构 ziplist § ziplist的过渡💡 在redis中，有很多地方都用到了ziplist。 在设计使用什么数据结构的时候，首先要做的是明确需求，即会怎么进行操作。 在redis的list数据类型中，会使用 lpush,rpush等命令，即需要头尾进行插入。 所以至少需要支持 正向遍历 逆向遍历 快速定位头部和尾部。 方案1，双向链表 § { *data *pre; -- 8字节 *next -- 8字节 }struct node 优点: 支持正逆向遍历，O(1)定位头尾部 缺点： 不管data的内容多大，都需要至少16字节的pre和next指针。浪费内存 无法精细化处理存储空间 ziplist(可变长数组) § ziplist就是为了解决双向链表对浪费内存的情况。 分成3部分， head data tail head，作为元数据。 总字节数 最后一个元素偏移量，为了快速定位最后一个节点数据 ziplist元素数量，快速获取entry总量 entry, 存储数据数组。 pre_len, 存储上一个entry的长度。是为了逆向遍历时，key找到上一个entry pren_lensize,是指存储pre_len所占用的字节。 比如，上一个entry长度只有254时，没必要申请太大的内存空间，来存储长度 pre_len&amp;lt;254, 占用1个字节 pre_len&amp;gt;=254, 占用5个字节，其中第一个字节固定值是254 encoding,当前entry长度编码。主要是为了适配不同的data类型，使用不同的编码。 data: 真实数据 优点: 占用紧凑，尽可能的精细化控制内存占用。根据上一个entry长度和当前entry长度，使用不同的空间在存储。 支持正向遍历过程 head是固定字节数，跳过head的大小，定位到第一个entry 计算出entry的占用的字节数 根据pren_len的值，计算出pren_lensize占用大小 根据encoding,计算出encoding和data的占用大小。 跳过entry的占用字节数，跳转到nextEntry 逆向遍历过程 根据head种的最后一个元素偏移量，定位到最后一个entry 获取entry中的pren_len 跳过pren_len，即可找到前一个entry 缺点: 遍历过程，时间复杂度是O(N)，所以如果元素数量太多，会导致性能太慢。 由于entry中的pre_len，存储的是上一个entry的长度，并且可能占用的内存是1个字节或者5个字节。如果中间某个entry的内容发送变化，导致后续的entry长度发生了变化，会导致 级联更新 quicklist(链表 + ziplist) § 因为ziplist中的entry,存储的是上一个entry的长度，导致了级联更新问题。 quicklist 的设计，其实是结合了链表和 ziplist 各自的优势。简单来说，一个 quicklist 就是一个链表，而链表中的每个元素又是一个 ziplist 在插入数据时，出现以下条件，则进行创建新的quicklistNode 单个 ziplist 是否不超过 8KB， 单个 ziplist 里的元素个数是否满足要求 这样一来，quicklist 通过控制每个 quicklistNode 中，ziplist 的大小或是元素个数，就有效减少了在 ziplist 中新增或修改元素后，发生连锁更新的情况，从而提供了更好的访问性能."/><meta property="og:image" content="https://quartz.jzhao.xyz/static/og-image.png"/><meta property="og:width" content="1200"/><meta property="og:height" content="675"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="#redis/数据结构 ziplist § ziplist的过渡💡 在redis中，有很多地方都用到了ziplist。 在设计使用什么数据结构的时候，首先要做的是明确需求，即会怎么进行操作。 在redis的list数据类型中，会使用 lpush,rpush等命令，即需要头尾进行插入。 所以至少需要支持 正向遍历 逆向遍历 快速定位头部和尾部。 方案1，双向链表 § { *data *pre; -- 8字节 *next -- 8字节 }struct node 优点: 支持正逆向遍历，O(1)定位头尾部 缺点： 不管data的内容多大，都需要至少16字节的pre和next指针。浪费内存 无法精细化处理存储空间 ziplist(可变长数组) § ziplist就是为了解决双向链表对浪费内存的情况。 分成3部分， head data tail head，作为元数据。 总字节数 最后一个元素偏移量，为了快速定位最后一个节点数据 ziplist元素数量，快速获取entry总量 entry, 存储数据数组。 pre_len, 存储上一个entry的长度。是为了逆向遍历时，key找到上一个entry pren_lensize,是指存储pre_len所占用的字节。 比如，上一个entry长度只有254时，没必要申请太大的内存空间，来存储长度 pre_len&amp;lt;254, 占用1个字节 pre_len&amp;gt;=254, 占用5个字节，其中第一个字节固定值是254 encoding,当前entry长度编码。主要是为了适配不同的data类型，使用不同的编码。 data: 真实数据 优点: 占用紧凑，尽可能的精细化控制内存占用。根据上一个entry长度和当前entry长度，使用不同的空间在存储。 支持正向遍历过程 head是固定字节数，跳过head的大小，定位到第一个entry 计算出entry的占用的字节数 根据pren_len的值，计算出pren_lensize占用大小 根据encoding,计算出encoding和data的占用大小。 跳过entry的占用字节数，跳转到nextEntry 逆向遍历过程 根据head种的最后一个元素偏移量，定位到最后一个entry 获取entry中的pren_len 跳过pren_len，即可找到前一个entry 缺点: 遍历过程，时间复杂度是O(N)，所以如果元素数量太多，会导致性能太慢。 由于entry中的pre_len，存储的是上一个entry的长度，并且可能占用的内存是1个字节或者5个字节。如果中间某个entry的内容发送变化，导致后续的entry长度发生了变化，会导致 级联更新 quicklist(链表 + ziplist) § 因为ziplist中的entry,存储的是上一个entry的长度，导致了级联更新问题。 quicklist 的设计，其实是结合了链表和 ziplist 各自的优势。简单来说，一个 quicklist 就是一个链表，而链表中的每个元素又是一个 ziplist 在插入数据时，出现以下条件，则进行创建新的quicklistNode 单个 ziplist 是否不超过 8KB， 单个 ziplist 里的元素个数是否满足要求 这样一来，quicklist 通过控制每个 quicklistNode 中，ziplist 的大小或是元素个数，就有效减少了在 ziplist 中新增或修改元素后，发生连锁更新的情况，从而提供了更好的访问性能."/><meta name="generator" content="Quartz"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="./index.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" rel="stylesheet" type="text/css" spa-preserve/><link href="https://fonts.googleapis.com/css2?family=IBM Plex Mono&amp;family=Schibsted Grotesk:wght@400;700&amp;family=Source Sans Pro:ital,wght@0,400;0,600;1,400;1,600&amp;display=swap" rel="stylesheet" type="text/css" spa-preserve/><script src="./prescript.js" type="application/javascript" spa-preserve></script><script type="application/javascript" spa-preserve>const fetchData = fetch(`./static/contentIndex.json`).then(data => data.json())</script></head><body data-slug="ziplist"><div id="quartz-root" class="page"><div id="quartz-body"><div class="left sidebar"><h1 class="page-title"><a href=".">🪴 Quartz 4.0</a></h1><div class="spacer mobile-only"></div><div class="search"><div id="search-icon"><p>Search</p><div></div><svg tabIndex="0" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title id="title">Search</title><desc id="desc">Search</desc><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg></div><div id="search-container"><div id="search-space"><input autocomplete="off" id="search-bar" name="search" type="text" aria-label="Search for something" placeholder="Search for something"/><div id="results-container"></div></div></div></div><div class="darkmode"><input class="toggle" id="darkmode-toggle" type="checkbox" tabIndex="-1"/><label id="toggle-label-light" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35;" xmlSpace="preserve"><title>Light mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg></label><label id="toggle-label-dark" for="darkmode-toggle" tabIndex="-1"><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background='new 0 0 100 100'" xmlSpace="preserve"><title>Dark mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></label></div><div class="toc desktop-only"><button type="button" id="toc"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="toc-content"><ul class="overflow"><li class="depth-0"><a href="#ziplist" data-for="ziplist">ziplist</a></li><li class="depth-2"><a href="#方案1双向链表" data-for="方案1双向链表">方案1，双向链表</a></li><li class="depth-2"><a href="#ziplist可变长数组" data-for="ziplist可变长数组">ziplist(可变长数组)</a></li><li class="depth-2"><a href="#quicklist链表--ziplist" data-for="quicklist链表--ziplist">quicklist(链表 + ziplist)</a></li><li class="depth-2"><a href="#listpackziplist的变种存储当前entry长度" data-for="listpackziplist的变种存储当前entry长度">listpack(ziplist的变种，存储当前entry长度)</a></li><li class="depth-2"><a href="#反向查询" data-for="反向查询">反向查询</a></li><li class="depth-1"><a href="#资料" data-for="资料">资料</a></li></ul></div></div></div><div class="center"><div class="page-header"><div class="popover-hint"><h1 class="article-title">ziplist</h1><p class="content-meta">Oct 18, 2023, 10 min read</p><ul class="tags"><li><a href="./tags/redis/数据结构" class="internal tag-link">#redis/数据结构</a></li></ul></div></div><article class="popover-hint"><p><a href="./tags/redis/数据结构" class="tag-link internal">#redis/数据结构</a></p>
+<h1 id="ziplist">ziplist<a aria-hidden="true" tabindex="-1" href="#ziplist" class="internal"> §</a></h1>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>ziplist的过渡💡 </p></div>
+                  
+                </div>
+<p>在redis中，有很多地方都用到了ziplist。</p>
+</blockquote>
+<p>在设计使用什么数据结构的时候，首先要做的是明确需求，即会怎么进行操作。<br/>
+在redis的list数据类型中，会使用 lpush,rpush等命令，即需要头尾进行插入。<br/>
+所以至少需要支持</p>
+<ul>
+<li>正向遍历</li>
+<li>逆向遍历</li>
+<li>快速定位头部和尾部。</li>
+</ul>
+<h3 id="方案1双向链表">方案1，双向链表<a aria-hidden="true" tabindex="-1" href="#方案1双向链表" class="internal"> §</a></h3>
+<pre><code>{
+   *data
+   *pre;  -- 8字节
+   *next  -- 8字节
+
+}struct node
+</code></pre>
+<p>优点:<br/>
+支持正逆向遍历，O(1)定位头尾部</p>
+<p>缺点：</p>
+<ol>
+<li>不管data的内容多大，都需要至少16字节的pre和next指针。浪费内存</li>
+<li>无法精细化处理存储空间</li>
+</ol>
+<h3 id="ziplist可变长数组">ziplist(可变长数组)<a aria-hidden="true" tabindex="-1" href="#ziplist可变长数组" class="internal"> §</a></h3>
+<p>ziplist就是为了解决双向链表对浪费内存的情况。<br/>
+分成3部分， head data tail</p>
+<ul>
+<li>
+<p>head，作为元数据。</p>
+<ul>
+<li>总字节数</li>
+<li>最后一个元素偏移量，为了快速定位最后一个节点数据</li>
+<li>ziplist元素数量，快速获取entry总量</li>
+</ul>
+</li>
+<li>
+<p>entry, 存储数据数组。</p>
+<ul>
+<li>pre_len, 存储上一个entry的长度。是为了逆向遍历时，key找到上一个entry
+<ul>
+<li>pren_lensize,是指存储pre_len所占用的字节。
+<ul>
+<li>比如，上一个entry长度只有254时，没必要申请太大的内存空间，来存储长度</li>
+<li>pre_len&lt;254, 占用1个字节</li>
+<li>pre_len>=254, 占用5个字节，其中第一个字节固定值是254</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>encoding,当前entry长度编码。主要是为了适配不同的data类型，使用不同的编码。</li>
+<li>data: 真实数据<br/>
+优点:</li>
+</ul>
+</li>
+<li>
+<p>占用紧凑，尽可能的精细化控制内存占用。根据上一个entry长度和当前entry长度，使用不同的空间在存储。</p>
+</li>
+<li>
+<p>支持正向遍历过程</p>
+<ul>
+<li>head是固定字节数，跳过head的大小，定位到第一个entry</li>
+<li>计算出entry的占用的字节数
+<ul>
+<li>根据pren_len的值，计算出pren_lensize占用大小</li>
+<li>根据encoding,计算出encoding和data的占用大小。</li>
+</ul>
+</li>
+<li>跳过entry的占用字节数，跳转到nextEntry</li>
+</ul>
+</li>
+<li>
+<p>逆向遍历过程</p>
+<ul>
+<li>根据head种的最后一个元素偏移量，定位到最后一个entry</li>
+<li>获取entry中的pren_len</li>
+<li>跳过pren_len，即可找到前一个entry</li>
+</ul>
+</li>
+</ul>
+<p>缺点:</p>
+<ol>
+<li>遍历过程，时间复杂度是O(N)，所以如果元素数量太多，会导致性能太慢。</li>
+<li>由于entry中的pre_len，存储的是上一个entry的长度，并且可能占用的内存是1个字节或者5个字节。如果中间某个entry的内容发送变化，导致后续的entry长度发生了变化，会导致 <strong>级联更新</strong><br/>
+<img src="http://image.clickear.top/20231018102201.png" alt="image.png"/></li>
+</ol>
+<h3 id="quicklist链表--ziplist">quicklist(链表 + ziplist)<a aria-hidden="true" tabindex="-1" href="#quicklist链表--ziplist" class="internal"> §</a></h3>
+<p>因为ziplist中的entry,存储的是上一个entry的长度，导致了级联更新问题。<br/>
+quicklist 的设计，其实是结合了链表和 ziplist 各自的优势。简单来说，<strong>一个 quicklist 就是一个链表，而链表中的每个元素又是一个 ziplist</strong></p>
+<p><img src="http://image.clickear.top/20231018180804.png" alt="image.png"/></p>
+<p>在插入数据时，出现以下条件，则进行创建新的quicklistNode</p>
+<ul>
+<li>单个 ziplist 是否不超过 8KB，</li>
+<li>单个 ziplist 里的元素个数是否满足要求<br/>
+这样一来，quicklist 通过控制每个 quicklistNode 中，ziplist 的大小或是元素个数，就有效减少了在 ziplist 中新增或修改元素后，发生连锁更新的情况，从而提供了更好的访问性能.</li>
+</ul>
+<h3 id="listpackziplist的变种存储当前entry长度">listpack(ziplist的变种，存储当前entry长度)<a aria-hidden="true" tabindex="-1" href="#listpackziplist的变种存储当前entry长度" class="internal"> §</a></h3>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>与ziplist的优化思路💡 </p></div>
+                  
+                </div>
+<ol>
+<li>ziplist的主要问题，在于存储了pre_len，导致了级联更新。pren_len的主要作用，在于逆向遍历，那有什么办法，不存储pre_len，又能进行逆向遍历呢？<br/>
+listpack,通过计算出当前entry的长度，就可以定位到上一个entry结束指针。那如何知道，entry的长度呢？主要在于，对entry_len的特殊处理。将每个字节的最高位bit，用来判断entry-len是否结束。<br/>
+最高位0，代表entry_len还没结束。<br/>
+最高位1，代表entry_len结束。<br/>
+逆向遍历时，依次获取最后的字节，判断最高位。知道最高位是1，代表了entry_len的长度。即可算出当前entry_len的长度。从而定位到当前entry</li>
+</ol>
+</blockquote>
+<p><img src="http://image.clickear.top/20231018170137.png" alt="image.png"/></p>
+<ul>
+<li>head 元数据
+<ul>
+<li>总字节数</li>
+<li>元素数量</li>
+</ul>
+</li>
+<li>entry列表，只存储当前entry的长度
+<ul>
+<li>encoding-type: 保存了<strong>数据类型及数据长度</strong></li>
+<li>data： 实际数据</li>
+<li>entry-len:（element-tot-len） 每个字节的最高位，是用来表示当前字节是否为 entry-len 的最后一个字节(低 7 位采用了<strong>大端模式存储</strong>)
+<ul>
+<li>最高位为 1，表示 entry-len 还没有结束，当前字节的左边字节仍然表示 entry-len 的内容；</li>
+<li>最高位为 0，表示当前字节已经是 entry-len 最后一个字节了。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>tail: 固定值结束符:255</li>
+</ul>
+<p>优点:</p>
+<ul>
+<li>紧凑存储，解决了<a href="./ziplist" class="internal">ziplist</a>的级联更新问题。通过encoding_type，尽可能控制内存占用</li>
+<li>支持正向遍历
+<ul>
+<li>首先，listpack 保存了 LP_HDR_SIZE，通过该参数可以直接将指针移动到第一个 entry 列表项</li>
+<li>先计算 encoding + data 的总长度 len1</li>
+<li>通过 len1 可计算出 element-tot-len 的长度</li>
+<li>len1 + element-tot-len 之和即为 entry 总长度 total-len</li>
+<li>向后移动 total-len 即为下一个列表项的起始位置</li>
+</ul>
+</li>
+<li>支持逆向遍历（）
+<ul>
+<li><strong>element-tot-len</strong>的特殊编码方式：element-tot-len 每个字节的最高位，是用来表示当前字节是否为 element-tot-len 的最后一个字节</li>
+<li>从当前列表项起始位置的指针开始，向左逐个字节解析(碰到最高位为1，即结束)，得到前一项的 element-tot-len 值，也就可以得到encoding + data的总长度，从而得出entry的总长度；</li>
+<li>减去entry的总长度，就得到了前一个entry的地址</li>
+</ul>
+</li>
+</ul>
+<h3 id="反向查询">反向查询<a aria-hidden="true" tabindex="-1" href="#反向查询" class="internal"> §</a></h3>
+<p>为了<strong>支持反向查询</strong>，特意设计了参数element-tot-len，怎么说呢？因为对于正向查询，encoding保存了数据类型及数据长度，就可以知道整个entry的长度</p>
+<p><strong>element-tot-len</strong>的特殊编码方式：element-tot-len 每个字节的最高位，是用来表示当前字节是否为 element-tot-len 的最后一个字节，这里存在两种情况，分别是：</p>
+<ul>
+<li>最高位为 1，表示 element-tot-len 还没有结束，当前字节的左边字节仍然表示 element-tot-len 的内容；</li>
+<li>最高位为 0，表示当前字节已经是 element-tot-len 最后一个字节了。而 element-tot-len 每个字节的低 7 位，则记录了实际的长度信息。</li>
+</ul>
+<p>这里需要注意的是，element-tot-len 每个字节的低 7 位采用了<strong>大端模式存储</strong>，也就是说，entry-len 的低位字节保存在内存高地址上。</p>
+<p>正是因为有了 element-tot-len 的特别编码方式，lpDecodeBacklen 函数就可以从当前列表项起始位置的指针开始，向左逐个字节解析，得到前一项的 element-tot-len 值，也就可以得到encoding + data的总长度，从而得出entry的总长度；减去entry的总长度，就得到了前一个entry的地址～</p>
+<p>作者：柏油<br/>
+链接：<a href="https://juejin.cn/post/7093530299866284045" class="external">7093530299866284045</a><br/>
+来源：稀土掘金<br/>
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。<br/>
+3. 在新版的reids中，已经大量替换了ziplist。<br/>
+缺点:</p>
+<ol>
+<li>同ziplist,存储元素更大时，进行遍历时会导致性能差。</li>
+</ol>
+<blockquote class="callout" data-callout="tip">
+<div class="callout-title">
+                  <div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div>
+                  <div class="callout-title-inner"><p>技巧💡 </p></div>
+                  
+                </div>
+<p>ziplist, listpack遍历性能差的问题，只在元素较少时才使用。当元素数量太大时，底层的数据结构就会变化。<br/>
+如zset,在元素数量较少时，使用<a href="./ziplist" class="internal">ziplist</a>,较多时，使用 <a href="./跳跃表" class="internal">跳跃表</a></p>
+</blockquote>
+<h2 id="资料">资料<a aria-hidden="true" tabindex="-1" href="#资料" class="internal"> §</a></h2>
+<p><a href="https://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/Redis%20%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E4%B8%8E%E5%AE%9E%E6%88%98/06%20%20%E4%BB%8Eziplist%E5%88%B0quicklist%EF%BC%8C%E5%86%8D%E5%88%B0listpack%E7%9A%84%E5%90%AF%E5%8F%91.md" class="external">06 从ziplist到quicklist，再到listpack的启发</a></p></article></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div id="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div><svg version="1.1" id="global-graph-icon" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xmlSpace="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+	s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+	c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+	C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+	c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+	v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+	s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+	C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+	S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+	s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+	s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></div><div id="global-graph-outer"><div id="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1}"></div></div></div><div class="backlinks"><h3>Backlinks</h3><ul class="overflow"><li><a href="./redis" class="internal">redis</a></li><li><a href="./ziplist" class="internal">ziplist</a></li><li><a href="./跳跃表" class="internal">跳跃表</a></li></ul></div></div></div><footer><hr/><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v4.0.10</a>, © 2023</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></body><script type="application/javascript">// quartz/components/scripts/quartz/components/scripts/callout.inline.ts
+function toggleCallout() {
+  const outerBlock = this.parentElement;
+  outerBlock.classList.toggle(`is-collapsed`);
+  const collapsed = outerBlock.classList.contains(`is-collapsed`);
+  const height = collapsed ? this.scrollHeight : outerBlock.scrollHeight;
+  outerBlock.style.maxHeight = height + `px`;
+  let current = outerBlock;
+  let parent = outerBlock.parentElement;
+  while (parent) {
+    if (!parent.classList.contains(`callout`)) {
+      return;
+    }
+    const collapsed2 = parent.classList.contains(`is-collapsed`);
+    const height2 = collapsed2 ? parent.scrollHeight : parent.scrollHeight + current.scrollHeight;
+    parent.style.maxHeight = height2 + `px`;
+    current = parent;
+    parent = parent.parentElement;
+  }
+}
+function setupCallout() {
+  const collapsible = document.getElementsByClassName(
+    `callout is-collapsible`
+  );
+  for (const div of collapsible) {
+    const title = div.firstElementChild;
+    if (title) {
+      title.removeEventListener(`click`, toggleCallout);
+      title.addEventListener(`click`, toggleCallout);
+      const collapsed = div.classList.contains(`is-collapsed`);
+      const height = collapsed ? title.scrollHeight : div.scrollHeight;
+      div.style.maxHeight = height + `px`;
+    }
+  }
+}
+document.addEventListener(`nav`, setupCallout);
+window.addEventListener(`resize`, setupCallout);
+</script><script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+          const darkMode = document.documentElement.getAttribute('saved-theme') === 'dark'
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: darkMode ? 'dark' : 'default'
+          });
+          document.addEventListener('nav', async () => {
+            await mermaid.run({
+              querySelector: '.mermaid'
+            })
+          });
+          </script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/copy-tex.min.js" type="application/javascript"></script><script src="./postscript.js" type="module"></script></html>
